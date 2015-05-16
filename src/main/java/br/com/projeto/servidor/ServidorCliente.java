@@ -128,7 +128,7 @@ public class ServidorCliente {
 				clienteServico.salvarArquivo(arquivoEntrada, cliente);
 			}
 		} else {
-			System.out.println("Arquivo não encontrado.");
+			System.out.println("Arquivo não encontrado!");
 		}
 	}
 	
