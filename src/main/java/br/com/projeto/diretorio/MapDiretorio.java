@@ -60,7 +60,12 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
 			return false;
 		}
-
+	}
+	
+	@Override
+	public Map<String, byte[]> get(Object key) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	public Map<String,byte[]> put(String key, Map<String,byte[]> value) {
@@ -116,12 +121,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 
 	@Override
 	public Set<java.util.Map.Entry<String, Map<String, byte[]>>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Map<String, byte[]> get(Object key) {
 		// TODO Auto-generated method stub
 		return null;
 	}

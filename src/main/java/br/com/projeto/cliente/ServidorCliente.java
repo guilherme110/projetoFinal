@@ -1,12 +1,10 @@
-package br.com.projeto.servidor;
+package br.com.projeto.cliente;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
 import bftsmart.tom.ServiceProxy;
-import br.com.projeto.cliente.Cliente;
-import br.com.projeto.cliente.ClienteServico;
 
 public class ServidorCliente {
 	private static ClienteServico clienteServico;
@@ -51,7 +49,7 @@ public class ServidorCliente {
 		System.out.println("exit -> sair do programa");
 	}
 	
-	public static void terminarServidor(Scanner leitor) {
+	public static void terminaServidor(Scanner leitor) {
 		System.out.println("Fechando conexões!");
 		try {
 			cliente.getConexao().close();
@@ -84,7 +82,7 @@ public class ServidorCliente {
 			opcaoListarArquivos(comando, leitor);
 			break;
 		case "exit":
-			terminarServidor(leitor);
+			terminaServidor(leitor);
 			break;
 		default:
 			System.out.println("comando invalido!");

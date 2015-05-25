@@ -25,11 +25,9 @@ public class ClienteServico {
 	}
 
 	public void criarDiretorio(String nomeDiretorio, Cliente cliente) {
-		Diretorio diretorioAtual = new Diretorio();
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		
-		diretorioAtual.setNomeDiretorio(cliente.getNomeDiretorioCliente());
-		if (!mapDiretorio.containsKey(nomeDiretorio))
+		//if (!mapDiretorio.containsKey(nomeDiretorio))
 			try {
 				mapDiretorio.put(nomeDiretorio, new TreeMap<String,byte[]>());
 				System.out.println("Diretorio criado com sucesso!");
@@ -37,8 +35,16 @@ public class ClienteServico {
 				System.out.println("Erro na criação do diretorio!");
 			}
 			
-		else
-			System.out.println("Esse diretorio já existe");
+		//else
+			//System.out.println("Esse diretorio já existe");
+	}
+	
+	public void listarArquivos(Cliente cliente) {
+		Diretorio diretorioAtual = new Diretorio();
+		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
+		
+		diretorioAtual.setNomeDiretorio(cliente.getNomeDiretorioCliente());
+		mapDiretorio.get(diretorioAtual);
 	}
 
 }
