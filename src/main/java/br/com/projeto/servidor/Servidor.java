@@ -41,7 +41,7 @@ public class Servidor extends DefaultSingleRecoverable {
 	@Override
 	public byte[] appExecuteOrdered(byte[] dadosCliente, MessageContext msgCtx) {
 		byte[] resposta = null;
-		ServidorServico servidorServido = new ServidorServico();
+		ServidorServico servidorServico = new ServidorServico();
 		
 		try {
 			ByteArrayInputStream dados = new ByteArrayInputStream(dadosCliente);
@@ -49,21 +49,39 @@ public class Servidor extends DefaultSingleRecoverable {
             
             switch (comando) {
 			case Constantes.CRIAR_DIRETORIO:
-				resposta = servidorServido.criarDiretorio(dados, tableMap);
+				resposta = servidorServico.criarDiretorio(dados, tableMap);
+				break;
 			default:
 				break;
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			System.out.println("Erro na leitura dos dados do cliente: " + e.getMessage());
 		}
 		
 		return resposta;
 	}
 
 	@Override
-	public byte[] executeUnordered(byte[] command, MessageContext msgCtx) {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] executeUnordered(byte[] dadosCliente, MessageContext msgCtx) {
+		byte[] resposta = null;
+		ServidorServico servidorServico = new ServidorServico();
+		
+		try {
+			ByteArrayInputStream dados = new ByteArrayInputStream(dadosCliente);
+            int comando = new DataInputStream(dados).readInt();
+            
+            switch (comando) {
+			case Constantes.VERIFICAR_DIRETORIO:
+				resposta = servidorServico.verificarDiretorio(dados, tableMap);
+				break;
+			default:
+				break;
+			}
+		} catch (Exception e) {
+			System.out.println("Erro na leitura dos dados do cliente: " + e.getMessage());
+		}
+		
+		return resposta;
 	}
 
 	@Override

@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import bftsmart.demo.bftmap.BFTMap;
 import bftsmart.demo.bftmap.BFTMapRequestType;
 import bftsmart.tom.ServiceProxy;
+import br.com.projeto.utils.Constantes;
 
 public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	private ServiceProxy conexao;
@@ -48,7 +49,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		try {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(10);
+			dos.writeInt(Constantes.VERIFICAR_DIRETORIO);
 			dos.writeUTF((String) key);
 			byte[] rep;
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
@@ -72,7 +73,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		try {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(1); //comando criação de diretorio
+			dos.writeInt(Constantes.CRIAR_DIRETORIO); //comando criação de diretorio
 			dos.writeUTF(key);
 			//ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
@@ -96,11 +97,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		}
 	}
 	
-	public void criarDiretorio(String nomeDiretorio, String nomeDiretorio2) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	@Override
 	public void clear() {
 		// TODO Auto-generated method stub

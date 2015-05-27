@@ -3,6 +3,7 @@ package br.com.projeto.servidor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -14,14 +15,14 @@ import bftsmart.demo.bftmap.BFTMapServer;
 import bftsmart.demo.bftmap.MapOfMaps;
 
 public class ServidorServico {
-	//FIXME Criar classe de diretorios de diretorios
 	
 	public ServidorServico() {
 
 	}
 	
 	@SuppressWarnings("unchecked")
-	public byte[] criarDiretorio(ByteArrayInputStream dados, MapOfMaps tableMap) throws IOException {
+	public byte[] criarDiretorio(ByteArrayInputStream dados, 
+			MapOfMaps tableMap) throws IOException {
 		String nomeDiretorio = new DataInputStream(dados).readUTF();
         ObjectInputStream objIn = new ObjectInputStream(dados);
 	    Map<String, byte[]> diretorio = null;
@@ -38,5 +39,17 @@ public class ServidorServico {
 	    dados.close();
 	    
 	    return saida.toByteArray();
+	}
+
+	public byte[] verificarDiretorio(ByteArrayInputStream dados,
+			MapOfMaps tableMap) throws IOException {
+		String nomeDiretorio = new DataInputStream(dados).readUTF();
+	    Map<String, byte[]> table = tableMap.getTable(nomeDiretorio);
+	    boolean tableExists = (table != null);
+	    System.out.println("Table exists: " + tableExists);
+	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+	    new DataOutputStream(saida).writeBoolean(tableExists);
+
+		return saida.toByteArray();
 	}
 }
