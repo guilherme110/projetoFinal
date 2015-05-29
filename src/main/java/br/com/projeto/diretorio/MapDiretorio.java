@@ -9,13 +9,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import bftsmart.demo.bftmap.BFTMap;
-import bftsmart.demo.bftmap.BFTMapRequestType;
+import bftsmart.demo.bftmap.BFTMapServer;
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.utils.Constantes;
 
@@ -48,10 +49,11 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	public boolean containsKey(String key) {
 		try {
 			out = new ByteArrayOutputStream();
-			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(Constantes.VERIFICAR_DIRETORIO);
-			dos.writeUTF((String) key);
 			byte[] rep;
+			
+			DataOutputStream dos = new DataOutputStream(out); 
+			dos.writeInt(Constantes.VERIFICA_DIRETORIO);
+			dos.writeUTF((String) key);
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
 			boolean res = new DataInputStream(in).readBoolean();
@@ -63,19 +65,39 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		}
 	}
 	
-	@Override
-	public Map<String, byte[]> get(Object key) {
-		// TODO Auto-generated method stub
-		return null;
+	@SuppressWarnings("unchecked")
+	public List<String> getListaArquivos(Object key) {
+		try {
+			out = new ByteArrayOutputStream();
+			byte[] rep;
+	        List<String> listaArquivos = null;
+			
+			DataOutputStream dos = new DataOutputStream(out); 
+			dos.writeInt(Constantes.LISTA_ARQUIVOS);
+			rep = this.getConexao().invokeUnordered(out.toByteArray());
+			ByteArrayInputStream in = new ByteArrayInputStream(rep);
+	        ObjectInputStream objIn = new ObjectInputStream(in);
+		    try {
+		    	listaArquivos = (List<String>) objIn.readObject();
+		    } catch (ClassNotFoundException ex) {
+		       Logger.getLogger(BFTMapServer.class.getName()).log(Level.SEVERE, null, ex);
+		    }
+			return listaArquivos;
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
+			return null;
+		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Map<String,byte[]> put(String key, Map<String,byte[]> value) {
 		try {
 			out = new ByteArrayOutputStream();
+			
 			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(Constantes.CRIAR_DIRETORIO); //comando criação de diretorio
+			dos.writeInt(Constantes.CRIA_DIRETORIO); 
 			dos.writeUTF(key);
-			//ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(value);
 			out1.close();
@@ -103,6 +125,11 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		
 	}
 
+	@Override
+	public Map<String, byte[]> get(Object key) {
+		return null;
+	}
+	
 	@Override
 	public boolean containsKey(Object key) {
 		// TODO Auto-generated method stub
@@ -164,4 +191,5 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	public void setConexao(ServiceProxy conexao) {
 		this.conexao = conexao;
 	}
+
 }

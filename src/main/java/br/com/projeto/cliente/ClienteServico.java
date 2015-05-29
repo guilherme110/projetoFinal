@@ -1,7 +1,8 @@
 package br.com.projeto.cliente;
 
 import java.io.File;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import br.com.projeto.diretorio.Diretorio;
@@ -40,12 +41,19 @@ public class ClienteServico {
 		}
 	}
 	
-	public void listarArquivos(Cliente cliente) {
+	public void listaArquivos(Cliente cliente) {
 		Diretorio diretorioAtual = new Diretorio();
+		List<String> listaArquivos = new ArrayList<String>();
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		
 		diretorioAtual.setNomeDiretorio(cliente.getNomeDiretorioCliente());
-		mapDiretorio.get(diretorioAtual);
+		listaArquivos = mapDiretorio.getListaArquivos(diretorioAtual);
+		
+		System.out.println(" ");
+		for (String arquivo : listaArquivos) {
+			System.out.print(arquivo + "    ");
+		}
+		System.out.println(" ");
 	}
 
 }

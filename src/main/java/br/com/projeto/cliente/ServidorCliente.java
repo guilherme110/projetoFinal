@@ -73,13 +73,13 @@ public class ServidorCliente {
 		
 		switch (opcao) {
 		case "mk":
-			opcaoCriarDiretorio(comando, leitor);
+			opcaoCriaDiretorio(comando, leitor);
 			break;
 		case "sv":
-			opcaoSalvarArquivo(comando, leitor);
+			opcaoSalvaArquivo(comando, leitor);
 			break;
 		case "ls":
-			opcaoListarArquivos(comando, leitor);
+			opcaoListaArquivos(comando, leitor);
 			break;
 		case "exit":
 			terminaServidor(leitor);
@@ -93,7 +93,7 @@ public class ServidorCliente {
 		opcoesCliente();
 	}
 	
-	private static void opcaoCriarDiretorio(String comando, Scanner leitor) {
+	private static void opcaoCriaDiretorio(String comando, Scanner leitor) {
 		String nomeDiretorio;
 		
 		try {
@@ -105,7 +105,7 @@ public class ServidorCliente {
 		clienteServico.criarDiretorio(nomeDiretorio, cliente);
 	}
 
-	private static void opcaoSalvarArquivo(String comando, Scanner leitor) {
+	private static void opcaoSalvaArquivo(String comando, Scanner leitor) {
 		File arquivoEntrada;
 		String parametro;
 		
@@ -130,8 +130,7 @@ public class ServidorCliente {
 		}
 	}
 	
-	private static void opcaoListarArquivos(String comando, Scanner leitor) {
-		// TODO Auto-generated method stub
-		
+	private static void opcaoListaArquivos(String comando, Scanner leitor) {
+		clienteServico.listaArquivos(cliente);
 	}
 }
