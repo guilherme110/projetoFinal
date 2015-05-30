@@ -64,4 +64,9 @@ public class ServidorServico {
 	    
 	    return saida.toByteArray();
 	}
+
+	public String atualizaCaminhoDiretorio(ByteArrayInputStream dados) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

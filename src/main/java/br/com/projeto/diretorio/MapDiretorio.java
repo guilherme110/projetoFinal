@@ -15,9 +15,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bftsmart.demo.bftmap.BFTMap;
-import bftsmart.demo.bftmap.BFTMapServer;
 import bftsmart.tom.ServiceProxy;
+import br.com.projeto.cliente.Cliente;
+import br.com.projeto.servidor.Servidor;
 import br.com.projeto.utils.Constantes;
 
 public class MapDiretorio implements Map<String, Map<String,byte[]>>{
@@ -40,10 +40,14 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			return rep;
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			return null;
 		}
+	}
+	
 
+	public void moveDiretorio(String nomeDiretorio, Cliente cliente) {
+		cliente.getDiretorioClienteAtual().add(nomeDiretorio);
 	}
 	
 	public boolean containsKey(String key) {
@@ -60,7 +64,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			return res;
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			return false;
 		}
 	}
@@ -80,12 +84,12 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		    try {
 		    	listaArquivos = (List<String>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
-		       Logger.getLogger(BFTMapServer.class.getName()).log(Level.SEVERE, null, ex);
+		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 		    }
 			return listaArquivos;
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			return null;
 		}
 	}
@@ -110,11 +114,11 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 
 		} catch (ClassNotFoundException ex) {
 			ex.printStackTrace();
-			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			return null;
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			Logger.getLogger(BFTMap.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			return null;
 		}
 	}
@@ -191,5 +195,4 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	public void setConexao(ServiceProxy conexao) {
 		this.conexao = conexao;
 	}
-
 }

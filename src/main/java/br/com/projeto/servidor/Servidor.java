@@ -17,7 +17,7 @@ import br.com.projeto.utils.Constantes;
 
 public class Servidor extends DefaultSingleRecoverable {
 	private int 	   idServidor;
-	ArvoreDeDiretorios arvoreDeDiretorios = null;
+	ArvoreDeDiretorios arvoreDeDiretorios      = null;
 	
 	public Servidor(int idServidor) {
 		this.idServidor = idServidor;
@@ -115,5 +115,4 @@ public class Servidor extends DefaultSingleRecoverable {
 	public void setIdServidor(int idServidor) {
 		this.idServidor = idServidor;
 	}
-
 }

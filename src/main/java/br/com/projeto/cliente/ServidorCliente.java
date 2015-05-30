@@ -2,6 +2,8 @@ package br.com.projeto.cliente;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import bftsmart.tom.ServiceProxy;
@@ -28,7 +30,8 @@ public class ServidorCliente {
 		
 		cliente.setIdCliente(Integer.parseInt(idCliente));
 		cliente.setNomeCliente(idCliente);
-		cliente.setNomeDiretorioCliente(clienteServico.getDiretorioCliente(cliente));
+		cliente.setDiretorioClienteAtual(new ArrayList<String>());
+		cliente.getDiretorioClienteAtual().add("root");
 		
 		try {
 			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");
@@ -64,14 +67,18 @@ public class ServidorCliente {
 		Scanner leitor = new Scanner(System.in);
 		String comando;
 		String opcao = "";
+		String diretorioAtual = buscaDiretorioAtual(cliente.getDiretorioClienteAtual());
 		
 		System.out.println(" ");
-		System.out.print("Comando -> ");
+		System.out.print("Comando " + diretorioAtual + " -> ");
 		comando = leitor.nextLine();
 		if (!comando.isEmpty())
 			opcao = comando.split(" ")[0];
 		
 		switch (opcao) {
+		case "cd":
+			opcaoMoveDiretorio(comando, leitor);
+			break;
 		case "mk":
 			opcaoCriaDiretorio(comando, leitor);
 			break;
@@ -93,6 +100,28 @@ public class ServidorCliente {
 		opcoesCliente();
 	}
 	
+	private static String buscaDiretorioAtual(List<String> diretorioClienteAtual) {
+		String diretorioAtual = "";
+		
+		for (String nomeDiretorio : diretorioClienteAtual) {
+			diretorioAtual = diretorioAtual + "/" + nomeDiretorio;
+		}
+		return diretorioAtual;
+	}
+
+	private static void opcaoMoveDiretorio(String comando, Scanner leitor) {
+		String nomeDiretorio;
+		
+		try {
+			nomeDiretorio = comando.split(" ")[1];
+		} catch (Exception e) {
+			System.out.print("Insira o nome do diretorio: ");
+			nomeDiretorio = leitor.next();
+		}
+		clienteServico.moveDiretorio(nomeDiretorio, cliente);
+		
+	}
+
 	private static void opcaoCriaDiretorio(String comando, Scanner leitor) {
 		String nomeDiretorio;
 		

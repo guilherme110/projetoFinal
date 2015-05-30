@@ -1,11 +1,13 @@
 package br.com.projeto.cliente;
 
+import java.util.List;
+
 import bftsmart.tom.ServiceProxy;
 
 public class Cliente {
-	private int    idCliente;
-	private String nomeCliente;
-	private String nomeDiretorioCliente;
+	private int          idCliente;
+	private String       nomeCliente;
+	private List<String> diretorioClienteAtual;
 	private ServiceProxy conexao;
 	
 	public Cliente() {
@@ -28,12 +30,12 @@ public class Cliente {
 		this.nomeCliente = nomeCliente;
 	}
 
-	public String getNomeDiretorioCliente() {
-		return nomeDiretorioCliente;
+	public List<String> getDiretorioClienteAtual() {
+		return diretorioClienteAtual;
 	}
 
-	public void setNomeDiretorioCliente(String nomeDiretorioCliente) {
-		this.nomeDiretorioCliente = nomeDiretorioCliente;
+	public void setDiretorioClienteAtual(List<String> diretorioClienteAtual) {
+		this.diretorioClienteAtual = diretorioClienteAtual;
 	}
 
 	public ServiceProxy getConexao() {

@@ -13,16 +13,20 @@ public class ClienteServico {
 	public String getDiretorioCliente(Cliente cliente) {
 		return cliente.getNomeCliente();
 	}
-
-	public void salvarArquivo(File arquivo, Cliente cliente) {
-		Diretorio diretorioAtual = new Diretorio();
+	
+	public void moveDiretorio(String nomeDiretorio, Cliente cliente) {
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		
-		diretorioAtual.setNomeDiretorio(cliente.getNomeDiretorioCliente());
-		if (mapDiretorio.salvarArquivo(diretorioAtual, arquivo) == null)
-			System.out.println("Erro ao salvar o arquivo!");
-		else
-			System.out.println("Arquivo salvo com sucesso!");
+		if (mapDiretorio.containsKey(nomeDiretorio)) {
+			try {
+				mapDiretorio.moveDiretorio(nomeDiretorio, cliente);
+			} catch (Exception e) {
+				System.out.println("Erro ao tentar acessar o diretorio: " + nomeDiretorio);
+			}
+		} 
+		else {
+			System.out.println("Diretorio não encontrado.");
+		}
 	}
 
 	public void criarDiretorio(String nomeDiretorio, Cliente cliente) {
@@ -46,7 +50,7 @@ public class ClienteServico {
 		List<String> listaArquivos = new ArrayList<String>();
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		
-		diretorioAtual.setNomeDiretorio(cliente.getNomeDiretorioCliente());
+		diretorioAtual.setNomeDiretorio(cliente.getDiretorioClienteAtual().get(0));
 		listaArquivos = mapDiretorio.getListaArquivos(diretorioAtual);
 		
 		System.out.println(" ");
@@ -56,4 +60,14 @@ public class ClienteServico {
 		System.out.println(" ");
 	}
 
+	public void salvarArquivo(File arquivo, Cliente cliente) {
+		Diretorio diretorioAtual = new Diretorio();
+		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
+		
+		diretorioAtual.setNomeDiretorio(cliente.getDiretorioClienteAtual().get(0));
+		if (mapDiretorio.salvarArquivo(diretorioAtual, arquivo) == null)
+			System.out.println("Erro ao salvar o arquivo!");
+		else
+			System.out.println("Arquivo salvo com sucesso!");
+	}
 }
