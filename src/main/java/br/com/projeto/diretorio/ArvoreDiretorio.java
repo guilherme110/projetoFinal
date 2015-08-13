@@ -84,7 +84,6 @@ public class ArvoreDiretorio {
 	
 	public List<String> listaArquivos(List<String> diretorioCliente) {
 		boolean encontrou = false;
-		String msgSaida = "";
 		List<String> listaSaida = new ArrayList<String>();
 		Node<Object> nodeAux = root;
 		Diretorio diretorioAux = new Diretorio();

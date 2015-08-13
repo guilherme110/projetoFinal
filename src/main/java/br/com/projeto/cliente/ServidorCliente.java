@@ -118,6 +118,7 @@ public class ServidorCliente {
 			System.out.print("Insira o nome do diretorio: ");
 			nomeDiretorio = leitor.next();
 		}
+		
 		clienteServico.moveDiretorio(nomeDiretorio, cliente);
 		
 	}

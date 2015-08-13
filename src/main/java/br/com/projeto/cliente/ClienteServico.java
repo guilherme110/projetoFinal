@@ -17,12 +17,19 @@ public class ClienteServico {
 	public void moveDiretorio(String nomeDiretorio, Cliente cliente) {
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		List<String> diretorioCliente = cliente.getDiretorioClienteAtual();
+		int tamanhoDiretorioAtual = 0;
 		
-		if (mapDiretorio.verificaDiretorio(nomeDiretorio, diretorioCliente)) {
-			diretorioCliente.add(nomeDiretorio);
-			cliente.setDiretorioClienteAtual(diretorioCliente);
+		if (("..".equalsIgnoreCase(nomeDiretorio))) {
+			tamanhoDiretorioAtual = cliente.getDiretorioClienteAtual().size();
+			if (tamanhoDiretorioAtual > 1)
+				cliente.getDiretorioClienteAtual().remove(tamanhoDiretorioAtual - 1);
 		} else {
-			System.out.println("Diretorio não encontrado.");
+			if (mapDiretorio.verificaDiretorio(nomeDiretorio, diretorioCliente)) {
+				diretorioCliente.add(nomeDiretorio);
+				cliente.setDiretorioClienteAtual(diretorioCliente);
+			} else {
+				System.out.println("Diretorio não encontrado.");
+			}
 		}
 	}
 
