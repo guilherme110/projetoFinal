@@ -45,11 +45,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		}
 	}
 	
-
-	public void moveDiretorio(String nomeDiretorio, Cliente cliente) {
-		cliente.getDiretorioClienteAtual().add(nomeDiretorio);
-	}
-	
 	public boolean containsKey(String key) {
 		try {
 			out = new ByteArrayOutputStream();
@@ -70,7 +65,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<String> getListaArquivos(Object key) {
+	public List<String> getListaArquivos(List<String> diretorioCliente) {
 		try {
 			out = new ByteArrayOutputStream();
 			byte[] rep;
@@ -78,6 +73,9 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			
 			DataOutputStream dos = new DataOutputStream(out); 
 			dos.writeInt(Constantes.LISTA_ARQUIVOS);
+			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(diretorioCliente);
+			out1.close();
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
 	        ObjectInputStream objIn = new ObjectInputStream(in);
@@ -95,7 +93,8 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Map<String,byte[]> put(String key, Map<String,byte[]> value) {
+	public String put(String key, List<String> list) {
+		String msgSaida = "";
 		try {
 			out = new ByteArrayOutputStream();
 			
@@ -103,24 +102,54 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			dos.writeInt(Constantes.CRIA_DIRETORIO); 
 			dos.writeUTF(key);
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
-			out1.writeObject(value);
+			out1.writeObject(list);
 			out1.close();
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
 			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
 			ObjectInputStream in = new ObjectInputStream(bis) ;
-			Map<String,byte[]> table = (Map<String,byte[]>) in.readObject();
+			msgSaida = (String) in.readObject();
 			in.close();
-			return table;
-
 		} catch (ClassNotFoundException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			return null;
+			msgSaida = "Erro na criação do diretorio!";
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			return null;
+			msgSaida = "Erro na criação do diretorio!";
 		}
+		return msgSaida;
+	}
+	
+	public boolean verificaDiretorio(String nomeDiretorio,
+			List<String> diretorioCliente) {
+		boolean saida = true;
+		
+		try {
+			out = new ByteArrayOutputStream();
+			byte[] rep;
+			
+			DataOutputStream dos = new DataOutputStream(out); 
+			dos.writeInt(Constantes.VERIFICA_DIRETORIO);
+			dos.writeUTF((String) nomeDiretorio);
+			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(diretorioCliente);
+			out1.close();
+			rep = this.getConexao().invokeUnordered(out.toByteArray());
+			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
+			ObjectInputStream in = new ObjectInputStream(bis) ;
+			saida = (boolean) in.readObject();
+			in.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			saida = false;
+		} catch (ClassNotFoundException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			saida = false;
+		}
+		return saida;
 	}
 	
 	@Override
@@ -194,5 +223,11 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 
 	public void setConexao(ServiceProxy conexao) {
 		this.conexao = conexao;
+	}
+
+	@Override
+	public Map<String, byte[]> put(String key, Map<String, byte[]> value) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

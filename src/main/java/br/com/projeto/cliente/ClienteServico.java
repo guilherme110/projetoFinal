@@ -16,33 +16,27 @@ public class ClienteServico {
 	
 	public void moveDiretorio(String nomeDiretorio, Cliente cliente) {
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
+		List<String> diretorioCliente = cliente.getDiretorioClienteAtual();
 		
-		if (mapDiretorio.containsKey(nomeDiretorio)) {
-			try {
-				mapDiretorio.moveDiretorio(nomeDiretorio, cliente);
-			} catch (Exception e) {
-				System.out.println("Erro ao tentar acessar o diretorio: " + nomeDiretorio);
-			}
-		} 
-		else {
+		if (mapDiretorio.verificaDiretorio(nomeDiretorio, diretorioCliente)) {
+			diretorioCliente.add(nomeDiretorio);
+			cliente.setDiretorioClienteAtual(diretorioCliente);
+		} else {
 			System.out.println("Diretorio não encontrado.");
 		}
 	}
 
-	public void criarDiretorio(String nomeDiretorio, Cliente cliente) {
+	public void criaDiretorio(String nomeNovoDiretorio, Cliente cliente) {
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
+		String msgSaida = "";
 		
-		if (!mapDiretorio.containsKey(nomeDiretorio)) {
-			try {
-				mapDiretorio.put(nomeDiretorio, new TreeMap<String,byte[]>());
-				System.out.println("Diretorio criado com sucesso!");
-			} catch (Exception e) {
-				System.out.println("Erro na criação do diretorio!");
-			}
-		} 
-		else {
-			System.out.println("Esse diretorio já existe");
+		try {
+			msgSaida = mapDiretorio.put(nomeNovoDiretorio, cliente.getDiretorioClienteAtual());
+			//System.out.println("Diretorio criado com sucesso!");
+		} catch (Exception e) {
+			msgSaida = "Erro na criação do diretorio!";
 		}
+		System.out.println(msgSaida);
 	}
 	
 	public void listaArquivos(Cliente cliente) {
@@ -51,7 +45,7 @@ public class ClienteServico {
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		
 		diretorioAtual.setNomeDiretorio(cliente.getDiretorioClienteAtual().get(0));
-		listaArquivos = mapDiretorio.getListaArquivos(diretorioAtual);
+		listaArquivos = mapDiretorio.getListaArquivos(cliente.getDiretorioClienteAtual());
 		
 		System.out.println(" ");
 		for (String arquivo : listaArquivos) {
@@ -60,7 +54,7 @@ public class ClienteServico {
 		System.out.println(" ");
 	}
 
-	public void salvarArquivo(File arquivo, Cliente cliente) {
+	public void salvaArquivo(File arquivo, Cliente cliente) {
 		Diretorio diretorioAtual = new Diretorio();
 		MapDiretorio mapDiretorio = new MapDiretorio(cliente.getConexao());
 		

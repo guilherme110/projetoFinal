@@ -18,13 +18,13 @@ public class ServidorCliente {
 			System.out.println("Necessário passar o <process id>");
 			System.exit(-1);
 		}
-		criarCliente(args[0]);
+		criaCliente(args[0]);
 		carregaTela();
 		opcoesCliente();
 	}
 
 	//FIXME Verificar como passar o nome do cliente
-	public static void criarCliente(String idCliente) {
+	public static void criaCliente(String idCliente) {
 		cliente = new Cliente();
 		clienteServico = new ClienteServico();
 		
@@ -131,7 +131,7 @@ public class ServidorCliente {
 			System.out.print("Insira o nome do diretorio: ");
 			nomeDiretorio = leitor.next();
 		}
-		clienteServico.criarDiretorio(nomeDiretorio, cliente);
+		clienteServico.criaDiretorio(nomeDiretorio, cliente);
 	}
 
 	private static void opcaoSalvaArquivo(String comando, Scanner leitor) {
@@ -152,7 +152,7 @@ public class ServidorCliente {
 			System.out.print("opção: ");
 			String teste = leitor.next();
 			if (teste.equalsIgnoreCase("S")){
-				clienteServico.salvarArquivo(arquivoEntrada, cliente);
+				clienteServico.salvaArquivo(arquivoEntrada, cliente);
 			}
 		} else {
 			System.out.println("Arquivo não encontrado.");

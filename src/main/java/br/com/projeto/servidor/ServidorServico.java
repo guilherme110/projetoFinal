@@ -13,50 +13,59 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import br.com.projeto.diretorio.ArvoreDeDiretorios;
+import br.com.projeto.diretorio.ArvoreDiretorio;
 
 public class ServidorServico {
 	
 	public ServidorServico() {
-
+	
 	}
 	
-	@SuppressWarnings("unchecked")
-	public byte[] criarDiretorio(ByteArrayInputStream dados, 
-			ArvoreDeDiretorios arvoreDeDiretorios) throws IOException {
-		String nomeDiretorio = new DataInputStream(dados).readUTF();
-        ObjectInputStream objIn = new ObjectInputStream(dados);
-	    Map<String, byte[]> diretorio = null;
+	public byte[] criaDiretorio(ByteArrayInputStream dados, 
+			ArvoreDiretorio ArvoreDiretorio) throws IOException {
+		List<String> diretorioCliente = new ArrayList<String>();
+		String nomeNovoDiretorio = new DataInputStream(dados).readUTF();
+		ObjectInputStream objIn = new ObjectInputStream(dados);
 	    try {
-	    	diretorio = (Map<String, byte[]>) objIn.readObject();
+	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
 	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 	    }
-	    Map<String, byte[]> diretorioCriado = arvoreDeDiretorios.addDiretorio(nomeDiretorio, diretorio);
+		
+	    String msgRetorno = ArvoreDiretorio.addDiretorio(diretorioCliente, nomeNovoDiretorio);
 	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
 	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
-	    objOut.writeObject(diretorioCriado);
+	    objOut.writeObject(msgRetorno);
 	    objOut.close();
 	    dados.close();
 	    
+	    System.out.println("Diretorio: " + nomeNovoDiretorio + "Status: " + msgRetorno);
 	    return saida.toByteArray();
 	}
 
-	public byte[] verificarDiretorio(ByteArrayInputStream dados,
-			ArvoreDeDiretorios arvoreDeDiretorios) throws IOException {
-		String nomeDiretorio = new DataInputStream(dados).readUTF();
-	    Map<String, byte[]> table = arvoreDeDiretorios.getDiretorio(nomeDiretorio);
-	    boolean tableExists = (table != null);
-	    System.out.println("Table exists: " + tableExists);
-	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
-	    new DataOutputStream(saida).writeBoolean(tableExists);
-
-		return saida.toByteArray();
-	}
-
-	public byte[] listaArquivos(ArvoreDeDiretorios arvoreDeDiretorios) throws IOException {
+//	public byte[] verificarDiretorio(ByteArrayInputStream dados,
+//			ArvoreDeDiretorios arvoreDeDiretorios) throws IOException {
+//		String nomeDiretorio = new DataInputStream(dados).readUTF();
+//	    Map<String, byte[]> table = arvoreDeDiretorios.getDiretorio(nomeDiretorio);
+//	    boolean tableExists = (table != null);
+//	    System.out.println("Table exists: " + tableExists);
+//	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+//	    new DataOutputStream(saida).writeBoolean(tableExists);
+//
+//		return saida.toByteArray();
+//	}
+//
+	public byte[] listaArquivos(ByteArrayInputStream dados, ArvoreDiretorio arvoreDiretorio) throws IOException {
 		List<String> listaArquivos = new ArrayList<String>();
-		arvoreDeDiretorios.listaArquivos(listaArquivos);
+		List<String> diretorioCliente = new ArrayList<String>();
+	
+		ObjectInputStream objIn = new ObjectInputStream(dados);
+	    try {
+	    	diretorioCliente = (List<String>) objIn.readObject();
+	    } catch (ClassNotFoundException ex) {
+	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+		listaArquivos = arvoreDiretorio.listaArquivos(diretorioCliente);
 	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
 	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
 	    objOut.writeObject(listaArquivos);
@@ -68,5 +77,29 @@ public class ServidorServico {
 	public String atualizaCaminhoDiretorio(ByteArrayInputStream dados) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public byte[] verificaDiretorio(ByteArrayInputStream dados,
+			ArvoreDiretorio arvoreDiretorio) throws IOException {
+		List<String> diretorioCliente = new ArrayList<String>();
+		List<String> listaAux = new ArrayList<String>();
+ 		boolean retorno = true;
+		
+		String nomeDiretorio = new DataInputStream(dados).readUTF();
+		ObjectInputStream objIn = new ObjectInputStream(dados);
+	    try {
+	    	diretorioCliente = (List<String>) objIn.readObject();
+	    } catch (ClassNotFoundException ex) {
+	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+		listaAux = arvoreDiretorio.listaArquivos(diretorioCliente);
+		retorno = listaAux.contains(nomeDiretorio);
+	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
+	    objOut.writeObject(retorno);
+	    objOut.close();
+	    
+	    System.out.println("Diretorio: " + nomeDiretorio + "   Existe: " + retorno);
+	    return saida.toByteArray();
 	}
 }

@@ -1,12 +1,8 @@
 package br.com.projeto.diretorio;
 
-import java.util.Map;
-
-
 public class Diretorio {
 	private String 				nomeDiretorio;
 	private int    				totalArquivos;
-	private Map<String, byte[]> estruturaDiretorio;
 	
 	public String getNomeDiretorio() {
 		return nomeDiretorio;
@@ -20,11 +16,4 @@ public class Diretorio {
 	public void setTotalArquivos(int totalArquivos) {
 		this.totalArquivos = totalArquivos;
 	}
-	public Map<String, byte[]> getEstruturaDiretorio() {
-		return estruturaDiretorio;
-	}
-	public void setEstruturaDiretorio(Map<String, byte[]> estruturaDiretorio) {
-		this.estruturaDiretorio = estruturaDiretorio;
-	}
-	
 }

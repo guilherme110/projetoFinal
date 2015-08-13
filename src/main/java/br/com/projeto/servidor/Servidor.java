@@ -12,17 +12,17 @@ import java.util.logging.Logger;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
-import br.com.projeto.diretorio.ArvoreDeDiretorios;
+import br.com.projeto.diretorio.ArvoreDiretorio;
 import br.com.projeto.utils.Constantes;
 
 public class Servidor extends DefaultSingleRecoverable {
 	private int 	   idServidor;
-	ArvoreDeDiretorios arvoreDeDiretorios      = null;
+	ArvoreDiretorio arvoreDiretorio      = null;
 	
 	public Servidor(int idServidor) {
 		this.idServidor = idServidor;
 		
-		arvoreDeDiretorios = new ArvoreDeDiretorios();
+		arvoreDiretorio = new ArvoreDiretorio();
 		new ServiceReplica(idServidor, this, this);
 	}
 
@@ -46,7 +46,7 @@ public class Servidor extends DefaultSingleRecoverable {
             
             switch (comando) {
 			case Constantes.CRIA_DIRETORIO:
-				resposta = servidorServico.criarDiretorio(dados, arvoreDeDiretorios);
+				resposta = servidorServico.criaDiretorio(dados, arvoreDiretorio);
 				break;
 			default:
 				break;
@@ -69,10 +69,10 @@ public class Servidor extends DefaultSingleRecoverable {
             
             switch (comando) {
 			case Constantes.VERIFICA_DIRETORIO:
-				resposta = servidorServico.verificarDiretorio(dados, arvoreDeDiretorios);
+				resposta = servidorServico.verificaDiretorio(dados, arvoreDiretorio);
 				break;
 			case Constantes.LISTA_ARQUIVOS:
-				resposta = servidorServico.listaArquivos(arvoreDeDiretorios);
+				resposta = servidorServico.listaArquivos(dados, arvoreDiretorio);
 				break;
 			default:
 				break;
@@ -95,7 +95,7 @@ public class Servidor extends DefaultSingleRecoverable {
 		try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutput out = new ObjectOutputStream(bos);
-            out.writeObject(arvoreDeDiretorios);
+            out.writeObject(arvoreDiretorio);
             out.flush();
             bos.flush();
             out.close();
