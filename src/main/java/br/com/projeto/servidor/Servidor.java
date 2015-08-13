@@ -4,11 +4,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import bftsmart.demo.bftmap.BFTMapServer;
+import bftsmart.demo.bftmap.MapOfMaps;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
@@ -85,9 +89,21 @@ public class Servidor extends DefaultSingleRecoverable {
 	}
 
 	@Override
-	public void installSnapshot(byte[] state) {
-		// TODO Auto-generated method stub
-	}
+    public void installSnapshot(byte[] state) {
+        try {             
+            // serialize to byte array and return
+            ByteArrayInputStream bis = new ByteArrayInputStream(state);
+            ObjectInput in = new ObjectInputStream(bis);
+            arvoreDiretorio = (ArvoreDiretorio) in.readObject();
+            in.close();
+            bis.close();
+
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(BFTMapServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(BFTMapServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
 	//pegar a atual situação dos diretorios
 	@Override

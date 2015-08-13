@@ -31,7 +31,7 @@ public class ServidorCliente {
 		cliente.setIdCliente(Integer.parseInt(idCliente));
 		cliente.setNomeCliente(idCliente);
 		cliente.setDiretorioClienteAtual(new ArrayList<String>());
-		cliente.getDiretorioClienteAtual().add("root");
+		cliente.getDiretorioClienteAtual().add("home");
 		
 		try {
 			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");

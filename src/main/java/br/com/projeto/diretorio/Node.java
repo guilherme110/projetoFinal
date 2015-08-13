@@ -1,9 +1,14 @@
 package br.com.projeto.diretorio;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node<T> {
+public class Node<T> implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private T data;
 	private List<Node<T>> children;
 	private Node<T> parent;

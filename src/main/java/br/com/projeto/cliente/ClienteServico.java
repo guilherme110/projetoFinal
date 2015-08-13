@@ -3,7 +3,6 @@ package br.com.projeto.cliente;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 import br.com.projeto.diretorio.Diretorio;
 import br.com.projeto.diretorio.MapDiretorio;

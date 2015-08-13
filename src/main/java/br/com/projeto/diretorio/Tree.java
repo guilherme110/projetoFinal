@@ -1,9 +1,14 @@
 package br.com.projeto.diretorio;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Tree<T> {
+public class Tree<T> implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Node<T> root;
 
 	public Tree(Node<T> root) {

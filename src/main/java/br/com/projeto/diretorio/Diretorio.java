@@ -1,6 +1,12 @@
 package br.com.projeto.diretorio;
 
-public class Diretorio {
+import java.io.Serializable;
+
+public class Diretorio implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String 				nomeDiretorio;
 	private int    				totalArquivos;
 	

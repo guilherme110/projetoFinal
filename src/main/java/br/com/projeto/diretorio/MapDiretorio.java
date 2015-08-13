@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import bftsmart.tom.ServiceProxy;
-import br.com.projeto.cliente.Cliente;
 import br.com.projeto.servidor.Servidor;
 import br.com.projeto.utils.Constantes;
 

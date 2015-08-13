@@ -1,14 +1,19 @@
 package br.com.projeto.diretorio;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArvoreDiretorio {
-	private static Node<Object> root = new Node<Object>("root");
+public class ArvoreDiretorio implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private static Node<Object> home = new Node<Object>("home");
 	private Tree<Object> arvoreDiretorio = null;
 	
 	public ArvoreDiretorio() {
-		arvoreDiretorio = new Tree<Object>(root);
+		arvoreDiretorio = new Tree<Object>(home);
 	}
 
 	public String addDiretorio(List<String> diretorioCliente, String nomeNovoDiretorio) {
@@ -18,10 +23,10 @@ public class ArvoreDiretorio {
 		novoDiretorio.setNomeDiretorio(nomeNovoDiretorio);
 		novoDiretorio.setTotalArquivos(0);
 		Node<Object> novoNode = null;
-		Node<Object> nodeAux = root;
+		Node<Object> nodeAux = home;
 		
 		//verifica o diretorio do cliente
-		List<Node<Object>> listaChildren = root.getChildren();
+		List<Node<Object>> listaChildren = home.getChildren();
 		for (String aux : diretorioCliente) {
 			for (Node<Object> nodeFilho : listaChildren) {
 				Diretorio diretorioFilho = (Diretorio) nodeFilho.getData();
@@ -57,13 +62,10 @@ public class ArvoreDiretorio {
 		}
 		return false;
 	}
-	public void getAllNodes() {
-		ArrayList<Node<Object>> teste = arvoreDiretorio.getPreOrderTraversal();
-	}
 	
 	public List<Node<Object>> verificaNodesCliente(List<String> diretorioAtual) {
-		List<Node<Object>> listaChildren = root.getChildren();
-		Node<Object> nodeAux = root;
+		List<Node<Object>> listaChildren = home.getChildren();
+		Node<Object> nodeAux = home;
 		boolean encontrou = true;
 		
 		for (String aux : diretorioAtual) {
@@ -85,9 +87,9 @@ public class ArvoreDiretorio {
 	public List<String> listaArquivos(List<String> diretorioCliente) {
 		boolean encontrou = false;
 		List<String> listaSaida = new ArrayList<String>();
-		Node<Object> nodeAux = root;
+		Node<Object> nodeAux = home;
 		Diretorio diretorioAux = new Diretorio();
-		List<Node<Object>> listaChildren = root.getChildren();
+		List<Node<Object>> listaChildren = home.getChildren();
 	
 		for (String aux : diretorioCliente) {
 			for (Node<Object> nodeFilho : listaChildren) {
