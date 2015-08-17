@@ -1,5 +1,6 @@
-package br.com.projeto.servidor;
+package br.com.projeto.storage;
 
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,21 +17,23 @@ public class Storage {
 	private long   		  espacoLivre;
 	private List<Arquivo> listaArquivos;
 	private int           idServidor;
+	private String	      localArmazenamento;
+	private	ServerSocket  socket;
 	
 	public Storage() {
 		this.idServidor = count.incrementAndGet();
 	}
 	
 	//FIXME Verificar se o storage pode ter arquivos com o mesmo nome
-	public Storage(String nomeStorage, String enderecoHost, int portaConexao,
-			long espacoLivre, List<Arquivo> listaArquivos) {
+	public Storage(String nomeStorage, int portaConexao, long espacoLivre, 
+			List<Arquivo> listaArquivos, String localArmazenamento) {
 		super();
 		this.nomeStorage = nomeStorage;
-		this.enderecoHost = enderecoHost;
 		this.portaConexao = portaConexao;
 		this.espacoLivre = espacoLivre;
 		this.listaArquivos = listaArquivos;
 		this.idServidor = count.incrementAndGet();
+		this.localArmazenamento = localArmazenamento;
 	}
 	public String getNomeStorage() {
 		return nomeStorage;
@@ -68,6 +71,22 @@ public class Storage {
 
 	public void setIdServidor(int idServidor) {
 		this.idServidor = idServidor;
+	}
+
+	public String getLocalArmazenamento() {
+		return localArmazenamento;
+	}
+
+	public void setLocalArmazenamento(String localArmazenamento) {
+		this.localArmazenamento = localArmazenamento;
+	}
+
+	public ServerSocket getSocket() {
+		return socket;
+	}
+
+	public void setSocket(ServerSocket socket) {
+		this.socket = socket;
 	}
 
 	public List<String> getListaNomeArquivos() {

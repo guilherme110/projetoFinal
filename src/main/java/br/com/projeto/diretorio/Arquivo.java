@@ -1,6 +1,7 @@
 package br.com.projeto.diretorio;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class Arquivo implements Serializable{
 	/**
@@ -11,6 +12,8 @@ public class Arquivo implements Serializable{
 	private Long   tamanhoArquivo;
 	private int    idStorage;
 	private String tipoArquivo;
+	private Date   dataCriacaoArquivo;
+	private byte[] dadosArquivo;
 	
 	public Arquivo() {
 		
@@ -56,5 +59,21 @@ public class Arquivo implements Serializable{
 
 	public void setTipoArquivo(String tipoArquivo) {
 		this.tipoArquivo = tipoArquivo;
+	}
+
+	public Date getDataCriacaoArquivo() {
+		return dataCriacaoArquivo;
+	}
+
+	public void setDataCriacaoArquivo(Date dataCriacaoArquivo) {
+		this.dataCriacaoArquivo = dataCriacaoArquivo;
+	}
+
+	public byte[] getDadosArquivo() {
+		return dadosArquivo;
+	}
+
+	public void setDadosArquivo(byte[] dadosArquivo) {
+		this.dadosArquivo = dadosArquivo;
 	}
 }

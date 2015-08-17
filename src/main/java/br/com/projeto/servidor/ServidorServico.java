@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.ArvoreDiretorio;
+import br.com.projeto.storage.Storage;
 
 public class ServidorServico {
 	
@@ -103,7 +104,7 @@ public class ServidorServico {
 	public void atualizaTabelaStorage(Arquivo arquivo, Storage storage,
 			Map<Integer, Storage> tabelaStorage) {	
 		storage.addListaArquivo(arquivo);
-		storage.setEspacoLivre(storage.getEspacoLivre() + arquivo.getTamanhoArquivo());
+		storage.setEspacoLivre(storage.getEspacoLivre() - arquivo.getTamanhoArquivo());
 		tabelaStorage.put(storage.getIdServidor(), storage);
 	}
 

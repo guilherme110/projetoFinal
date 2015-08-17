@@ -61,7 +61,6 @@ public class ArvoreDiretorio implements Serializable {
 	public boolean addArquivo(List<String> diretorioCliente,
 			Arquivo novoArquivo, ArvoreDiretorio arvoreDiretorio2) {
 		boolean      encontrou     = false;
-		Node<Object> novoNode      = null;
 		Node<Object> nodeAux       = home;
 		Diretorio    diretorioAux  = (Diretorio) home.getData();
 		List<String> listaArquivos = new ArrayList<String>();
@@ -83,11 +82,10 @@ public class ArvoreDiretorio implements Serializable {
 			}
 		}
 		
+		//diretorioAux: último diretorio encontrado
 		listaArquivos = diretorioAux.getNomeArquivos();
 		if (!listaArquivos.contains(novoArquivo.getNomeArquivo())) {
-			novoNode = new Node<Object>(novoArquivo.getNomeArquivo());
-			novoNode.setData(novoArquivo);
-			nodeAux.addChild(novoNode);
+			diretorioAux.addArquivo(novoArquivo);
 			return true;
 		}
 		

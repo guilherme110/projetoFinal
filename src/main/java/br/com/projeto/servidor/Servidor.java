@@ -21,6 +21,7 @@ import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
 import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.ArvoreDiretorio;
+import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 
 public class Servidor extends DefaultSingleRecoverable {
@@ -31,9 +32,11 @@ public class Servidor extends DefaultSingleRecoverable {
 	
 	//FIXME Verificar como um novo storage irá se cadastrar na lista de storage
 	public Servidor(int idServidor) {
-		Storage local = new Storage("Storage Local", "127.0.0.1", 10101, 2000000, new ArrayList<Arquivo>());
-		this.idServidor = idServidor;
+		Storage local = new Storage("Storage Local", 10101, 2000000, 
+				new ArrayList<Arquivo>(), "/home/guilherme/TesteProjeto/");
+		local.setEnderecoHost("127.0.0.1");
 		
+		this.idServidor = idServidor;
 		arvoreDiretorio = new ArvoreDiretorio();
 		servidorServico = new ServidorServico();
 		tabelaStorage =  new HashMap<Integer,Storage>();
@@ -186,8 +189,8 @@ public class Servidor extends DefaultSingleRecoverable {
 			}
 		} else {
 			dadosSaida.add("false");
-			dadosSaida.add("Não há espaço nos storages!"); 
-			System.out.println("Não há espaço nos storages!");
+			dadosSaida.add("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!"); 
+			System.out.println("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!");
 		}
 
 		try {
