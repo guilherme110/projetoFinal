@@ -4,10 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,24 +27,39 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		this.setConexao(conexao);
 	}
 	
-	public byte[] salvarArquivo(Diretorio diretorio, File arquivo) {
+	@SuppressWarnings("unchecked")
+	public List<String> salvarArquivo(Arquivo novoArquivo, List<String> diretorioCliente) {
+		List<String> statusStorage = new ArrayList<String>();
 		try {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(4);
-			dos.writeUTF(diretorio.getNomeDiretorio());
-			dos.writeUTF("1");
-			dos.writeUTF(arquivo.getName());
+			
+			dos.writeInt(Constantes.SALVA_ARQUIVO);
+			
+			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(novoArquivo);
+			out1.writeObject(diretorioCliente);
+			out1.close();
+			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
-			return rep;
+			ByteArrayInputStream in = new ByteArrayInputStream(rep);
+	        ObjectInputStream objIn = new ObjectInputStream(in);
+		    try {
+		    	statusStorage = (List<String>) objIn.readObject();
+		    } catch (ClassNotFoundException ex) {
+		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		    }
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			return null;
+			statusStorage.add("false");
+			statusStorage.add("Erro no salvamento do arquivo!");  
 		}
+		return statusStorage;
 	}
 	
 	public boolean containsKey(String key) {
+		boolean res = true;
 		try {
 			out = new ByteArrayOutputStream();
 			byte[] rep;
@@ -52,38 +67,41 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			DataOutputStream dos = new DataOutputStream(out); 
 			dos.writeInt(Constantes.VERIFICA_DIRETORIO);
 			dos.writeUTF((String) key);
+			
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
-			boolean res = new DataInputStream(in).readBoolean();
-			return res;
+			res = new DataInputStream(in).readBoolean();
+			
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			return false;
+			res = false;
 		}
+		return res;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<String> getListaArquivos(List<String> diretorioCliente) {
+	public ArrayList<List<String>> getListaDados(List<String> diretorioCliente) {
 		try {
 			out = new ByteArrayOutputStream();
 			byte[] rep;
-	        List<String> listaArquivos = null;
+	        ArrayList<List<String>> listaDados = null;
 			
 			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(Constantes.LISTA_ARQUIVOS);
+			dos.writeInt(Constantes.LISTA_DADOS);
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(diretorioCliente);
 			out1.close();
+			
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
 	        ObjectInputStream objIn = new ObjectInputStream(in);
 		    try {
-		    	listaArquivos = (List<String>) objIn.readObject();
+		    	listaDados = (ArrayList<List<String>>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
 		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 		    }
-			return listaArquivos;
+			return listaDados;
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
@@ -91,7 +109,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public String put(String key, List<String> list) {
 		String msgSaida = "";
 		try {
@@ -103,6 +120,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(list);
 			out1.close();
+			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
 			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
 			ObjectInputStream in = new ObjectInputStream(bis) ;
@@ -134,6 +152,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(diretorioCliente);
 			out1.close();
+			
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
 			ObjectInputStream in = new ObjectInputStream(bis) ;

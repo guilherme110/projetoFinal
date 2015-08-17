@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import bftsmart.tom.ServiceProxy;
+import br.com.projeto.utils.Formatacao;
 
 public class ServidorCliente {
 	private static ClienteServico clienteServico;
@@ -24,9 +25,9 @@ public class ServidorCliente {
 	}
 
 	//FIXME Verificar como passar o nome do cliente
+	//Cria o objeto cliente e o objeto clienteServico		
 	public static void criaCliente(String idCliente) {
 		cliente = new Cliente();
-		clienteServico = new ClienteServico();
 		
 		cliente.setIdCliente(Integer.parseInt(idCliente));
 		cliente.setNomeCliente(idCliente);
@@ -36,8 +37,9 @@ public class ServidorCliente {
 		try {
 			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");
 			cliente.setConexao(KVProxy);
+			clienteServico = new ClienteServico(cliente);
 		} catch (Exception e) {
-			System.out.println("Erro de comunicação com os servidore!");
+			System.out.println("Erro de comunicação com os servidores!");
 			System.exit(-1);
 		}
 		
@@ -48,7 +50,7 @@ public class ServidorCliente {
 		System.out.println("cd -> movimentar entre as pastas [nome da pasta]");
 		System.out.println("mk -> criar diretorio [nome do diretorio]");
 		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
-		System.out.println("ls -> listar arquivos");
+		System.out.println("ls -> listar arquivos e diretorios");
 		System.out.println("exit -> sair do programa");
 	}
 	
@@ -86,7 +88,7 @@ public class ServidorCliente {
 			opcaoSalvaArquivo(comando, leitor);
 			break;
 		case "ls":
-			opcaoListaArquivos(comando, leitor);
+			opcaoListaDados(comando, leitor);
 			break;
 		case "exit":
 			terminaServidor(leitor);
@@ -114,9 +116,10 @@ public class ServidorCliente {
 		
 		try {
 			nomeDiretorio = comando.split(" ")[1];
+			nomeDiretorio = comando.substring(comando.indexOf(" ") + 1);
 		} catch (Exception e) {
 			System.out.print("Insira o nome do diretorio: ");
-			nomeDiretorio = leitor.next();
+			nomeDiretorio = leitor.nextLine();
 		}
 		
 		clienteServico.moveDiretorio(nomeDiretorio, cliente);
@@ -128,39 +131,42 @@ public class ServidorCliente {
 		
 		try {
 			nomeDiretorio = comando.split(" ")[1];
+			nomeDiretorio = comando.substring(comando.indexOf(" ") + 1);
 		} catch (Exception e) {
 			System.out.print("Insira o nome do diretorio: ");
-			nomeDiretorio = leitor.next();
+			nomeDiretorio = leitor.nextLine();
 		}
 		clienteServico.criaDiretorio(nomeDiretorio, cliente);
 	}
 
 	private static void opcaoSalvaArquivo(String comando, Scanner leitor) {
 		File arquivoEntrada;
+		Formatacao format = new Formatacao();
 		String parametro;
 		
-		try {
+		try { 
 			parametro = comando.split(" ")[1];
+			parametro = comando.substring(comando.indexOf(" ") + 1);
 			arquivoEntrada = new File(parametro);
 		} catch (Exception e) {
 			System.out.print("Insira o local do arquivo: ");
-			arquivoEntrada = new File(leitor.next());
+			arquivoEntrada = new File(leitor.nextLine());
 		}
 		if(arquivoEntrada.exists()) {
 			System.out.println("Nome do arquivo   : " + arquivoEntrada.getName());
-			System.out.println("Tamanho do arquivo: " + arquivoEntrada.length());
-			System.out.println("Salvar arquivo (S-Sim / N-Não): ");
+			System.out.println("Tamanho do arquivo: " + format.convertNomeBytes(arquivoEntrada.length()));
+			System.out.println("Salvar arquivo (S/N): ");
 			System.out.print("opção: ");
-			String teste = leitor.next();
-			if (teste.equalsIgnoreCase("S")){
+			String opcao = leitor.next();
+			if (opcao.equalsIgnoreCase("S")){
 				clienteServico.salvaArquivo(arquivoEntrada, cliente);
 			}
 		} else {
 			System.out.println("Arquivo não encontrado.");
 		}
-	}
+	}	
 	
-	private static void opcaoListaArquivos(String comando, Scanner leitor) {
-		clienteServico.listaArquivos(cliente);
+	private static void opcaoListaDados(String comando, Scanner leitor) {
+		clienteServico.listaDados(cliente);
 	}
 }
