@@ -66,8 +66,10 @@ public class Servidor extends DefaultSingleRecoverable {
 				resposta = servidorServico.criaDiretorio(dados, arvoreDiretorio);
 				break;
 			case Constantes.SALVA_ARQUIVO:
-				resposta = opcaoSalvarArquivo(dados);
+				resposta = opcaoSalvaArquivo(dados);
 				break;	
+			case Constantes.APAGA_ARQUIVO:
+				resposta = opcaoApagaArquivo(dados);
 			default:
 				break;
 			}
@@ -89,6 +91,9 @@ public class Servidor extends DefaultSingleRecoverable {
             switch (comando) {
 			case Constantes.VERIFICA_DIRETORIO:
 				resposta = servidorServico.verificaDiretorio(dados, arvoreDiretorio);
+				break;
+			case Constantes.BUSCA_ARQUIVO:
+				resposta = servidorServico.buscaArquivo(dados, arvoreDiretorio);
 				break;
 			case Constantes.LISTA_DADOS:
 				resposta = servidorServico.listaDados(dados, arvoreDiretorio);
@@ -140,7 +145,7 @@ public class Servidor extends DefaultSingleRecoverable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public byte[] opcaoSalvarArquivo(ByteArrayInputStream dados) {
+	public byte[] opcaoSalvaArquivo(ByteArrayInputStream dados) {
 		Storage melhorStorage 	      = new Storage();
 		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
 		List<String> dadosSaida 	  = new ArrayList<String>();
@@ -149,18 +154,19 @@ public class Servidor extends DefaultSingleRecoverable {
 		ObjectOutputStream objOut;
 		Arquivo novoArquivo           = new Arquivo();
 		
-	    try {
+		//le os dados de entrada
+		try {
 	    	objIn = new ObjectInputStream(dados);
 	    	novoArquivo = (Arquivo) objIn.readObject();
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
 	    	dadosSaida.add("false");
-			dadosSaida.add("Não há espaço nos storages!");
+			dadosSaida.add("Erro na leitura dos dados de entrada!");
 	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 	    	ex.printStackTrace(); 
 	    } catch (IOException ex) {
 	    	dadosSaida.add("false");
-			dadosSaida.add("Não há espaço nos storages!");
+			dadosSaida.add("Erro na leitura dos dados de entrada!");
 	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace(); 
 		}
@@ -175,7 +181,7 @@ public class Servidor extends DefaultSingleRecoverable {
 			System.out.println("Encontrado melhor storage: " + melhorStorage.getNomeStorage());
 			novoArquivo.setIdStorage(melhorStorage.getIdServidor());
 			if (servidorServico.salvaArquivo(novoArquivo, diretorioCliente, arvoreDiretorio)) {
-				servidorServico.atualizaTabelaStorage(novoArquivo, melhorStorage, tabelaStorage);	
+				servidorServico.addArquivoTabelaStorage(novoArquivo, melhorStorage, tabelaStorage);	
 				dadosSaida.add("true");
 				dadosSaida.add("Melhor Storage: " + melhorStorage.getNomeStorage());
 				dadosSaida.add(melhorStorage.getEnderecoHost());
@@ -193,18 +199,83 @@ public class Servidor extends DefaultSingleRecoverable {
 			System.out.println("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!");
 		}
 
+		//monta os dados de saida
 		try {
 			objOut = new ObjectOutputStream(saida);
 			objOut.writeObject(dadosSaida);
 			objOut.close();
 		} catch (IOException ex) {
 			dadosSaida.add("false");
-			dadosSaida.add("Não há espaço nos storages!"); 
+			dadosSaida.add("Erro na escrita da saída dos dados"); 
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace();
 		}
 		return saida.toByteArray();
 	}
+	
+
+	@SuppressWarnings("unchecked")
+	private byte[] opcaoApagaArquivo(ByteArrayInputStream dados) {
+		Storage storage			      = new Storage();
+		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
+		List<String> dadosSaida 	  = new ArrayList<String>();
+		List<String> diretorioCliente = new ArrayList<String>();
+		ObjectInputStream objIn;
+		ObjectOutputStream objOut;
+		Arquivo arquivo		          = new Arquivo();
+		
+		//le os dados de entrada
+		try {
+	    	objIn = new ObjectInputStream(dados);
+	    	arquivo = (Arquivo) objIn.readObject();
+	    	diretorioCliente = (List<String>) objIn.readObject();
+	    } catch (ClassNotFoundException ex) {
+	    	dadosSaida.add("false");
+			dadosSaida.add("Erro na leitura dos dados de entrada!");
+	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    	ex.printStackTrace(); 
+	    } catch (IOException ex) {
+	    	dadosSaida.add("false");
+			dadosSaida.add("Erro na leitura dos dados de entrada!");
+	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+			ex.printStackTrace(); 
+		}
+		
+	    /*apaga o arquivo na arvoreDiretorio e verifica se o arquivo existe  nesse diretorio
+	    verifica o storage onde o arquivo está salvo
+	    atualiza a tabela de storage
+	    atualiza os dados do objeto de saida dadosSaida.*/
+		if (servidorServico.apagaArquivo(arquivo, diretorioCliente, arvoreDiretorio)) {
+			storage = tabelaStorage.get(arquivo.getIdStorage());
+			servidorServico.remArquivoTabelaStorage(arquivo, storage, tabelaStorage);	
+			dadosSaida.add("true");
+			dadosSaida.add("Storage: " + storage.getNomeStorage());
+			dadosSaida.add(storage.getEnderecoHost());
+			dadosSaida.add(Integer.toString(storage.getPortaConexao()));
+			System.out.println("Nome do arquivo apagado: " + arquivo.getNomeArquivo());
+			System.out.println("Tabela de Storage atualizada!");
+		} else {
+			dadosSaida.add("false");
+			dadosSaida.add("Nome de arquivo não existe nesse diretório!");
+			System.out.println("Nome de arquivo não existe nesse diretório!");
+		}
+	
+		//monta os dados de saida
+		try {
+			objOut = new ObjectOutputStream(saida);
+			objOut.writeObject(dadosSaida);
+			objOut.close();
+		} catch (IOException ex) {
+			dadosSaida.add("false");
+			dadosSaida.add("Erro na escrita da saída dos dados"); 
+			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+			ex.printStackTrace();
+		}
+		return saida.toByteArray();
+	}
+
+
+
 
 	public int getIdServidor() {
 		return idServidor;

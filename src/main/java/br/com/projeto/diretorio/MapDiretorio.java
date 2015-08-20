@@ -28,7 +28,7 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<String> salvarArquivo(Arquivo novoArquivo, List<String> diretorioCliente) {
+	public List<String> salvaArquivo(Arquivo novoArquivo, List<String> diretorioCliente) {
 		List<String> statusStorage = new ArrayList<String>();
 		try {
 			out = new ByteArrayOutputStream();
@@ -54,6 +54,37 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			statusStorage.add("false");
 			statusStorage.add("Erro no salvamento do arquivo!");  
+		}
+		return statusStorage;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<String> apagaArquivo(Arquivo arquivo, List<String> diretorioCliente) {
+		List<String> statusStorage = new ArrayList<String>();
+		try {
+			out = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(out); 
+			
+			dos.writeInt(Constantes.APAGA_ARQUIVO);
+			
+			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(arquivo);
+			out1.writeObject(diretorioCliente);
+			out1.close();
+			
+			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
+			ByteArrayInputStream in = new ByteArrayInputStream(rep);
+	        ObjectInputStream objIn = new ObjectInputStream(in);
+		    try {
+		    	statusStorage = (List<String>) objIn.readObject();
+		    } catch (ClassNotFoundException ex) {
+		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		    }
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			statusStorage.add("false");
+			statusStorage.add("Erro ao tentar apagar o arquivo!");  
 		}
 		return statusStorage;
 	}
@@ -136,6 +167,44 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 			msgSaida = "Erro na criação do diretorio!";
 		}
 		return msgSaida;
+	}
+	
+	public Arquivo buscaArquivo(String nomeArquivo,
+			List<String> diretorioCliente) {
+		Arquivo arquivo = null;
+		boolean res = false;
+		try {
+			out = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(out); 
+			
+			
+			dos.writeInt(Constantes.BUSCA_ARQUIVO);
+			dos.writeUTF((String) nomeArquivo);
+
+			ObjectOutputStream outObject = new ObjectOutputStream(out) ;
+			outObject.writeObject(diretorioCliente);
+			outObject.close();
+			
+			byte[] rep = this.getConexao().invokeUnordered(out.toByteArray());
+			ByteArrayInputStream in = new ByteArrayInputStream(rep);
+	        ObjectInputStream objIn = new ObjectInputStream(in);
+		    
+	        //caso não exista o arquivo o primeiro parametro da resposta (res) é falso
+	        
+	        try {
+	        	res = (boolean) objIn.readObject();
+		        if (res == false)
+		        	return null;
+		    	arquivo = (Arquivo) objIn.readObject();
+		    } catch (ClassNotFoundException ex) {
+		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		    }
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			return null;
+		}
+		return arquivo;
 	}
 	
 	public boolean verificaDiretorio(String nomeDiretorio,
@@ -248,4 +317,5 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

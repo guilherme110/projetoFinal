@@ -2,6 +2,7 @@ package br.com.projeto.storage;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,8 +10,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.List;
 
 import br.com.projeto.diretorio.Arquivo;
+import br.com.projeto.utils.Constantes;
 
 public class ServidorStorage {
 	private static Storage storage;
@@ -54,34 +57,71 @@ public class ServidorStorage {
 	}
 	
 
+	@SuppressWarnings("unused")
 	private static boolean aguardaCliente() {
 		Socket cliente = null;
-		Arquivo novoArquivo = new Arquivo();
+		List<Object> dadosCliente = new ArrayList<Object>();
+		Arquivo arquivo = new Arquivo();
+		int opcao = 0;
+		boolean res = false;
 		
 		try {
-			System.out.println("\n\nAguardando novo cliente...");
+			System.out.println("\nAguardando novo cliente...");
 			cliente = storage.getSocket().accept();
 			System.out.println("Novo cliente conectado, cliente: " + cliente.getInetAddress().getHostAddress());
 			
 			//le os dados de entrada do cliente
 			System.out.println("Lendo os dados do cliente...");
-			novoArquivo = trataDadosCliente(cliente);
-            
-            //salva o arquivo
-			System.out.println("Salvando arquivo:  " + novoArquivo.getNomeArquivo());
-			if (salvaArquivo(novoArquivo, storage.getLocalArmazenamento()))
-				System.out.println("Arquivo " + novoArquivo.getNomeArquivo() + " salvo com sucesso!");
-			else
-				System.out.println("Erro no salvamento do arquivo: " + novoArquivo.getNomeArquivo());
+			dadosCliente = trataDadosCliente(cliente);
+			arquivo = (Arquivo) dadosCliente.get(0);
+			opcao = (Integer) dadosCliente.get(1);
+			
+			//trata a opção do cliente
+			res = trataOpcaoCliente(arquivo, opcao);
+			
 			cliente.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
 		return true;
 	}
-	
+
+	//Método para tratar a opção desejada do cliente
+	private static boolean trataOpcaoCliente(Arquivo arquivo, int opcao) {
+		boolean res = false;
+		
+		switch (opcao) {
+		case Constantes.STORAGE_SALVA_ARQUIVO:	
+			System.out.println("Salvando arquivo:  " + arquivo.getNomeArquivo());
+			if (salvaArquivo(arquivo, storage.getLocalArmazenamento())) {
+				System.out.println("Arquivo " + arquivo.getNomeArquivo() + " salvo com sucesso!");
+				res = true;
+			} else {
+				System.out.println("Erro no salvamento do arquivo: " + arquivo.getNomeArquivo());
+				res = false;
+			}
+			break;
+		case Constantes.STORAGE_REMOVE_ARQUIVO:
+			System.out.println("Removendo o arquivo:  " + arquivo.getNomeArquivo());
+			if (removeArquivo(arquivo, storage.getLocalArmazenamento())) {
+				System.out.println("Arquivo " + arquivo.getNomeArquivo() + " removido com sucesso!");
+				res = true;
+			} else {
+				System.out.println("Erro ao tentar remover o arquivo: " + arquivo.getNomeArquivo());
+				res = false;
+			}
+			break;
+		default:
+			System.out.println("Opção inválida do cliente!");
+			res = false;
+			break;
+		}
+		
+		return res;
+	}
+
+	//Cria o arquivo no local de armazenamento do storage
 	private static boolean salvaArquivo(Arquivo novoArquivo,
 			String localArmazenamento) {
 		String localNovoArquivo = storage.getLocalArmazenamento() + novoArquivo.getNomeArquivo();
@@ -97,35 +137,56 @@ public class ServidorStorage {
         }
 		return true;
 	}
-
-	private static Arquivo trataDadosCliente(Socket cliente) {
-		byte[] objetoEntrada = null;
-		Object obj = null;
-        ByteArrayInputStream bis = null;
-        ObjectInputStream ois = null;
-    	
-		try {
-			objetoEntrada = new byte[cliente.getReceiveBufferSize()];
-			BufferedInputStream bf = new BufferedInputStream(cliente.getInputStream());
-			bf.read(objetoEntrada);
 	
-		    bis = new ByteArrayInputStream(objetoEntrada);
-	        ois = new ObjectInputStream(bis);
-	        obj = ois.readObject();
-	        bis.close();
-	        ois.close();
-		} catch (SocketException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	private static boolean removeArquivo(Arquivo dadosArquivo,
+			String localArmazenamento) {
+		String localArquivo = storage.getLocalArmazenamento() + dadosArquivo.getNomeArquivo();
+        
+        File arquivo = new File(localArquivo);
+		if(arquivo.exists()) {
+			arquivo.delete();
+			return true;
+		} else {
+			System.out.println("Arquivo não encontrado!");
+			return false;
 		}
-       
-        return (Arquivo) obj; 
+        
+	}
+
+	/*Le os dados do cliente e retorna uma lista de Object com os dados do cliente
+	  dadosCliente: 0 - Dados do arquivo enviado
+					1 - Opção do cliente */
+	public static List<Object> trataDadosCliente(Socket cliente) {
+		byte[] dadosEntrada = null;
+        ByteArrayInputStream in = null;
+        ObjectInputStream objIn = null;
+    	List<Object> dadosCliente = new ArrayList<Object>();
+        
+		try {
+			dadosEntrada = new byte[cliente.getReceiveBufferSize()];
+			BufferedInputStream bf = new BufferedInputStream(cliente.getInputStream());
+			bf.read(dadosEntrada);
+	
+		    in = new ByteArrayInputStream(dadosEntrada);
+		    objIn = new ObjectInputStream(in);
+	        
+		    //Le a opção do cliente e os dados do arquivo enviado
+	       	dadosCliente.add((Arquivo) objIn.readObject());
+	        dadosCliente.add((Integer) objIn.readInt());
+	        
+	        in.close();
+	        objIn.close();
+		} catch (SocketException e2) {
+			e2.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return dadosCliente;
 	}
 
 

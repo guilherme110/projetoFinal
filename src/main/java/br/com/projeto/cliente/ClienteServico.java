@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.MapDiretorio;
+import br.com.projeto.utils.Constantes;
 
 public class ClienteServico {
 	public MapDiretorio mapDiretorio;
@@ -96,6 +97,9 @@ public class ClienteServico {
 									1 - Mensagem de retorno
 									2 - endereço de host do storage
 									3 - porta do host do storage
+	Primeiro salva o arquivo na arvore de diretorio e obtem o storage para ser salvo o arquivo
+	Segundo salva o arquivo no storage encontrado.
+	Caso ocorra algum problema ao tentar enviar o arquivo, e realizado rollback no mapDiretorio.
 	*/
 	public void salvaArquivo(File arquivo, Cliente cliente) {
 		List<String> statusStorage = new ArrayList<String>();
@@ -106,13 +110,17 @@ public class ClienteServico {
 		novoArquivo.setTamanhoArquivo(arquivo.length());
 		novoArquivo.setTipoArquivo(tipoArquivo);
 		try {
-			statusStorage = mapDiretorio.salvarArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
+			statusStorage = mapDiretorio.salvaArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
 			if ("true".equalsIgnoreCase(statusStorage.get(0))) {
-				System.out.println("\n\n" + statusStorage.get(1));
-				if (enviaArquivo(statusStorage, arquivo, novoArquivo)) {
+				System.out.println("\n" + statusStorage.get(1));
+				if (enviaArquivoStorage(statusStorage, arquivo, novoArquivo)) {
 					System.out.println("Arquivo enviado com sucesso!");
 				} else {
 					System.out.println("Erro ao enviar o arquivo " + novoArquivo.getNomeArquivo());
+					statusStorage = mapDiretorio.apagaArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
+					if ("true".equalsIgnoreCase(statusStorage.get(0))) {
+						System.out.println("Efetuado rollback dos dados!");
+					}
 				}
 			} else {
 				System.out.println(statusStorage.get(1));
@@ -121,57 +129,129 @@ public class ClienteServico {
 			System.out.println("Erro ao salvar o arquivo!");
 		}
 	}
+	
+	/*StatusStorage index position: 0 - Status do Salvamento
+									1 - Mensagem de retorno
+									2 - endereço de host do storage
+									3 - porta do host do storage
+	*/
+	public void apagaArquivo(String nomeArquivo, Cliente cliente) {
+		List<String> statusStorage = new ArrayList<String>();
+		Arquivo arquivo = new Arquivo();
+		
+		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
+		if (arquivo != null) {
+			try {
+				statusStorage = mapDiretorio.apagaArquivo(arquivo, cliente.getDiretorioClienteAtual());
+				if ("true".equalsIgnoreCase(statusStorage.get(0))) {
+					System.out.println("\n" + statusStorage.get(1));
+					if (apagaArquivoStorage(statusStorage, arquivo)) {
+						System.out.println("Arquivo apagado com sucesso!");
+					} else {
+						System.out.println("Erro ao apagar o arquivo " + arquivo.getNomeArquivo());
+					}
+				} else {
+					System.out.println(statusStorage.get(1));
+				}
+			} catch (Exception e) {
+				System.out.println("Erro ao apagar o arquivo!");
+			}
+		} else {
+			System.out.println("Arquivo não existe nesse diretório!");
+		}			
+	}
 
 	/*StatusStorage index position: 0 - Status do Salvamento
 									1 - Mensagem de retorno
 									2 - endereço de host do storage
 									3 - porta do host do storage
 	*/
-	private boolean enviaArquivo(List<String> statusStorage, File arquivo, Arquivo novoArquivo) throws IOException {
+	private boolean enviaArquivoStorage(List<String> statusStorage, File arquivo, Arquivo novoArquivo) {
 		String hostStorage = statusStorage.get(2);
 		int portaStorage = Integer.parseInt(statusStorage.get(3));
 		
-		FileInputStream fis;
-	    byte[] bFile = new byte[(int) arquivo.length()];
-        fis = new FileInputStream(arquivo);
-        fis.read(bFile);
-        fis.close();
-
-        novoArquivo.setDadosArquivo(bFile);
-        
 		Socket cliente = null;
 		BufferedOutputStream bufferSaida = null;
 		byte[] bufferArquivo = null;
 		try {
 			cliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao servidor!"); 
+		   
 		    System.out.println("Enviando arquivo...");
 	        bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
-	        bufferArquivo = serializarArquivo(novoArquivo);
+	        bufferArquivo = serializarArquivo(arquivo, novoArquivo);
 	        bufferSaida.write(bufferArquivo);
 	        bufferSaida.flush();
-		} catch (IOException e) {
-			System.out.println("Erro de conexão ao host: " + statusStorage.get(1));
+	        bufferSaida.close();
+		    cliente.close();
+		} catch (Exception e) {
+			System.out.println("Erro no envio do arquivo!");
 			e.printStackTrace();
 			return false;
-		} finally {
-			bufferSaida.close();
-		    cliente.close();
-		}
+		} 
 		return true;
 	}
-
-	private byte[] serializarArquivo(Arquivo arquivo){
-	    try {
-			ByteArrayOutputStream bao = new ByteArrayOutputStream();
+	
+	/*StatusStorage index position: 0 - Status do Salvamento
+		1 - Mensagem de retorno
+		2 - endereço de host do storage
+		3 - porta do host do storage
+	*/
+	private boolean apagaArquivoStorage(List<String> statusStorage, Arquivo arquivo) {
+		String hostStorage = statusStorage.get(2);
+		int portaStorage = Integer.parseInt(statusStorage.get(3));
+		
+		Socket cliente = null;
+		BufferedOutputStream bufferSaida = null;
+		try {
+			cliente = new Socket(hostStorage, portaStorage);
+		    System.out.println("O cliente se conectou ao servidor!"); 
+		    
+		    //monta os dados a ser enviado ao storage (Arquivo e a opção de remover)
+		    bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
+	        ByteArrayOutputStream bao = new ByteArrayOutputStream();
 			ObjectOutputStream ous;
 			ous = new ObjectOutputStream(bao);
 			ous.writeObject(arquivo);
-			return bao.toByteArray();
+			ous.writeInt(Constantes.STORAGE_REMOVE_ARQUIVO);
+	       
+			System.out.println("Removendo arquivo...");
+	        bufferSaida.write(bao.toByteArray());
+	        bufferSaida.flush();
+	        bufferSaida.close();
+		    cliente.close();
+		} catch (Exception e) {
+			System.out.println("Erro ao tentar remover o arquivo!");
+			e.printStackTrace();
+			return false;
+		} 
+		return true;
+	}
+	
+
+	//Serializa o arquivo para ser enviado.
+	//Passa um parametro de opção de salvar arquivo
+	private byte[] serializarArquivo(File arquivo, Arquivo novoArquivo){
+		FileInputStream fis;
+		
+        try {
+           //le os dados do arquivo, armazena os dados do arquivo no objeto
+    	   byte[] conteudoByte = new byte[(int) arquivo.length()];
+           fis = new FileInputStream(arquivo);
+           fis.read(conteudoByte);
+           fis.close();
+           novoArquivo.setDadosArquivo(conteudoByte);
+           
+           //converte em byte o objeto arquivo para ser enviado
+           ByteArrayOutputStream bao = new ByteArrayOutputStream();
+		   ObjectOutputStream ous;
+		   ous = new ObjectOutputStream(bao);
+		   ous.writeObject(novoArquivo);
+		   ous.writeInt(Constantes.STORAGE_SALVA_ARQUIVO);
+		   return bao.toByteArray();
 	    } catch (IOException e) {
-	        e.printStackTrace();
+	       e.printStackTrace();
 	    }
 	    return null;
 	}
-	
 }

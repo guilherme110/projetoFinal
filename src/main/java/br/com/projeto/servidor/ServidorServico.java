@@ -94,18 +94,36 @@ public class ServidorServico {
 	public boolean salvaArquivo(Arquivo novoArquivo,
 			List<String> diretorioCliente, ArvoreDiretorio arvoreDiretorio) {
 		
-		if (arvoreDiretorio.addArquivo(diretorioCliente, novoArquivo, arvoreDiretorio))
+		if (arvoreDiretorio.addArquivo(diretorioCliente, novoArquivo))
+			return true;
+		return false;
+	}
+	
+	public boolean apagaArquivo(Arquivo arquivo, List<String> diretorioCliente,
+			ArvoreDiretorio arvoreDiretorio) {
+		if (arvoreDiretorio.remArquivo(diretorioCliente, arquivo))
 			return true;
 		return false;
 	}
 
 	//Atualiza o storage com o novo arquivo.
 	//Atualiza a tabela de storages
-	public void atualizaTabelaStorage(Arquivo arquivo, Storage storage,
+	public void addArquivoTabelaStorage(Arquivo arquivo, Storage storage,
 			Map<Integer, Storage> tabelaStorage) {	
 		storage.addListaArquivo(arquivo);
 		storage.setEspacoLivre(storage.getEspacoLivre() - arquivo.getTamanhoArquivo());
 		tabelaStorage.put(storage.getIdServidor(), storage);
+	}
+	
+	//Remove o arquivo da lista de arquivo do storage
+	//Atualiza o espaço livre do storage.
+	//Atualiza a tabela de storages
+	public void remArquivoTabelaStorage(Arquivo arquivo, Storage storage,
+			Map<Integer, Storage> tabelaStorage) {
+		storage.remListaArquivo(arquivo);
+		storage.setEspacoLivre(storage.getEspacoLivre() + arquivo.getTamanhoArquivo());
+		tabelaStorage.put(storage.getIdServidor(), storage);
+		
 	}
 
 	//Verifica se há storage com espaço disponivel para o arquivo
@@ -122,5 +140,35 @@ public class ServidorServico {
 			}
 		}
 		return null;
+	}
+
+	//Verifica se um arquivo existe no diretorio e retorna o arquivo
+	@SuppressWarnings("unchecked")
+	public byte[] buscaArquivo(ByteArrayInputStream dados,
+			ArvoreDiretorio arvoreDiretorio) throws IOException {
+		Arquivo arquivo = null;
+		boolean res = false;
+		List<String> diretorioCliente = new ArrayList<String>();
+		
+		String nomeArquivo = new DataInputStream(dados).readUTF();
+		ObjectInputStream objIn = new ObjectInputStream(dados);
+	    try {
+	    	diretorioCliente = (List<String>) objIn.readObject();
+	    } catch (ClassNotFoundException ex) {
+	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	    
+	    arquivo = arvoreDiretorio.buscaArquivo(nomeArquivo, diretorioCliente);
+	    if (arquivo != null)
+	    	res = true;
+	    
+	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
+	    objOut.writeObject(res);
+	    objOut.writeObject(arquivo);
+	    objOut.close();
+	    
+	    System.out.println("Arquivo: " + nomeArquivo + "   Existe: " + res);
+	    return saida.toByteArray();
 	}
 }

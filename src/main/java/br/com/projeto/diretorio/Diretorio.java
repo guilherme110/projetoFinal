@@ -44,13 +44,27 @@ public class Diretorio implements Serializable{
 		}
 		return new ArrayList<String>();
 	}
-	public void addArquivo(Arquivo novoArquivo) {
+	public void addArquivo(Arquivo arquivo) {
 		List<Arquivo> listaArquivos = this.getListaArquivos();
 	
 		if (CollectionUtils.isEmpty(listaArquivos))
 			listaArquivos = new ArrayList<Arquivo>();
 		
-		listaArquivos.add(novoArquivo);
+		listaArquivos.add(arquivo);
 		this.setListaArquivos(listaArquivos);
+	}
+	public void remArquivo(Arquivo arquivo) {
+		List<Arquivo> listaArquivos = this.getListaArquivos();
+		
+		if (CollectionUtils.isEmpty(listaArquivos))
+			listaArquivos = new ArrayList<Arquivo>();
+		
+		for (Arquivo arquivoFilho : listaArquivos) {
+			if (arquivo.getNomeArquivo().equalsIgnoreCase(arquivoFilho.getNomeArquivo()))
+				arquivo = arquivoFilho;
+		}
+		listaArquivos.remove(arquivo);
+		this.setListaArquivos(listaArquivos);
+		
 	}
 }

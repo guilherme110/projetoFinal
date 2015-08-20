@@ -101,9 +101,17 @@ public class Storage {
 		return new ArrayList<String>();
 	}
 
-	public void addListaArquivo(Arquivo novoArquivo) {
+	public void addListaArquivo(Arquivo arquivo) {
 		List<Arquivo> listaArquivos = this.getListaArquivos();
-		listaArquivos.add(novoArquivo);
+		listaArquivos.add(arquivo);
 		this.setListaArquivos(listaArquivos);
+	}
+
+	public void remListaArquivo(Arquivo arquivo) {
+		List<Arquivo> listaArquivos = this.getListaArquivos();
+		
+		listaArquivos.remove(arquivo);
+		this.setListaArquivos(listaArquivos);
+		
 	}
 }

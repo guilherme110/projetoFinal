@@ -50,6 +50,7 @@ public class ServidorCliente {
 		System.out.println("cd -> movimentar entre as pastas [nome da pasta]");
 		System.out.println("mk -> criar diretorio [nome do diretorio]");
 		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
+		System.out.println("rm -> remover arquivo [caminho do arquivo]");
 		System.out.println("ls -> listar arquivos e diretorios");
 		System.out.println("exit -> sair do programa");
 	}
@@ -87,6 +88,8 @@ public class ServidorCliente {
 		case "sv":
 			opcaoSalvaArquivo(comando, leitor);
 			break;
+		case "rm":
+			opcaoApagaArquivo(comando, leitor);
 		case "ls":
 			opcaoListaDados(comando, leitor);
 			break;
@@ -101,7 +104,7 @@ public class ServidorCliente {
 		//Chama o metodo de opções novamente
 		opcoesCliente();
 	}
-	
+
 	private static String buscaDiretorioAtual(List<String> diretorioClienteAtual) {
 		String diretorioAtual = "";
 		
@@ -164,7 +167,20 @@ public class ServidorCliente {
 		} else {
 			System.out.println("Arquivo não encontrado.");
 		}
-	}	
+	}
+	
+	private static void opcaoApagaArquivo(String comando, Scanner leitor) {
+		String nomeArquivo;
+		
+		try { 
+			nomeArquivo = comando.split(" ")[1];
+			nomeArquivo = comando.substring(comando.indexOf(" ") + 1);
+		} catch (Exception e) {
+			System.out.print("Insira o local do arquivo: ");
+			nomeArquivo = leitor.nextLine();
+		}
+		clienteServico.apagaArquivo(nomeArquivo, cliente);
+	}
 	
 	private static void opcaoListaDados(String comando, Scanner leitor) {
 		clienteServico.listaDados(cliente);

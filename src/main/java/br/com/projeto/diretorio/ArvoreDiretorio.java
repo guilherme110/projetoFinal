@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 public class ArvoreDiretorio implements Serializable {
 	/**
 	 * 
@@ -58,14 +60,61 @@ public class ArvoreDiretorio implements Serializable {
 		return msgSaida;
 	}
 	
-	public boolean addArquivo(List<String> diretorioCliente,
-			Arquivo novoArquivo, ArvoreDiretorio arvoreDiretorio2) {
+	//Adiciona um arquivo no diretorio atual do cliente.
+	public boolean addArquivo(List<String> diretorioCliente, Arquivo arquivo) {
+		Diretorio    diretorioAtual  = (Diretorio) home.getData();
+		List<String> listaArquivos   = new ArrayList<String>();
+		
+		//verifica o diretório atual do cliente.
+		diretorioAtual = verificaDiretorioAtual(diretorioCliente);
+		
+		//verifica se o diretorio já possuí um arquivo com esse nome
+		listaArquivos = diretorioAtual.getNomeArquivos();
+		if (!listaArquivos.contains(arquivo.getNomeArquivo())) {
+			diretorioAtual.addArquivo(arquivo);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	//Remove um arquivo do diretorio atual do cliente.
+	public boolean remArquivo(List<String> diretorioCliente, Arquivo arquivo) {
+		Diretorio    diretorioAtual  = (Diretorio) home.getData();
+		List<String> listaArquivos   = new ArrayList<String>();
+		
+		//verifica o diretório atual do cliente.
+		diretorioAtual = verificaDiretorioAtual(diretorioCliente);
+		
+		//verifica se o diretorio possuí um arquivo com esse nome
+		listaArquivos = diretorioAtual.getNomeArquivos();
+		if (listaArquivos.contains(arquivo.getNomeArquivo())) {
+			diretorioAtual.remArquivo(arquivo);
+			return true;
+		}
+		
+		return false;
+	}
+	
+		
+	
+	//Verifica se o diretorio existe em uma lista de nodes.
+	public boolean verificaDiretorio(List<Node<Object>> listaDiretorio, String nomeDiretorio) {
+		for (Node<Object> nodeFilho : listaDiretorio) {
+			Diretorio diretorioAux = (Diretorio) nodeFilho.getData();
+			if (diretorioAux.getNomeDiretorio().equalsIgnoreCase(nomeDiretorio)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//Metódo que verifica o diretorio do cliente atual.
+	private Diretorio verificaDiretorioAtual(List<String> diretorioCliente) {
 		boolean      encontrou     = false;
 		Node<Object> nodeAux       = home;
 		Diretorio    diretorioAux  = (Diretorio) home.getData();
-		List<String> listaArquivos = new ArrayList<String>();
 		
-		//verifica o diretorio do cliente
 		List<Node<Object>> listaChildren = home.getChildren();
 		for (String aux : diretorioCliente) {
 			for (Node<Object> nodeFilho : listaChildren) {
@@ -82,27 +131,9 @@ public class ArvoreDiretorio implements Serializable {
 			}
 		}
 		
-		//diretorioAux: último diretorio encontrado
-		listaArquivos = diretorioAux.getNomeArquivos();
-		if (!listaArquivos.contains(novoArquivo.getNomeArquivo())) {
-			diretorioAux.addArquivo(novoArquivo);
-			return true;
-		}
-		
-		return false;
+		return diretorioAux;
 	}
-	
-	//Verifica se o diretorio existe em uma lista de nodes.
-	public boolean verificaDiretorio(List<Node<Object>> listaDiretorio, String nomeDiretorio) {
-		for (Node<Object> nodeFilho : listaDiretorio) {
-			Diretorio diretorioAux = (Diretorio) nodeFilho.getData();
-			if (diretorioAux.getNomeDiretorio().equalsIgnoreCase(nomeDiretorio)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
+
 	public List<String> listaDiretorios(List<String> diretorioCliente) {
 		boolean encontrou = false;
 		List<String> listaSaida = new ArrayList<String>();
@@ -140,6 +171,7 @@ public class ArvoreDiretorio implements Serializable {
 		Diretorio diretorioAux = (Diretorio) home.getData();
 		List<Node<Object>> listaChildren = home.getChildren();
 	
+		diretorioAux = verificaDiretorioAtual(diretorioCliente);
 		for (String aux : diretorioCliente) {
 			for (Node<Object> nodeFilho : listaChildren) {
 				Diretorio diretorioFilho = (Diretorio) nodeFilho.getData();
@@ -175,5 +207,24 @@ public class ArvoreDiretorio implements Serializable {
 
 	public void setArvoreDiretorio(Tree<Object> arvoreDiretorio) {
 		this.arvoreDiretorio = arvoreDiretorio;
+	}
+
+	public Arquivo buscaArquivo(String nomeArquivo, List<String> diretorioCliente) {
+		Diretorio    diretorioAtual  = (Diretorio) home.getData();
+		List<Arquivo> listaArquivos   = new ArrayList<Arquivo>();
+		
+		//verifica o diretório atual do cliente.
+		diretorioAtual = verificaDiretorioAtual(diretorioCliente);
+		
+		//verifica se o diretorio possuí um arquivo com esse nome.
+		listaArquivos = diretorioAtual.getListaArquivos();
+		if(CollectionUtils.isNotEmpty(listaArquivos)) {
+			for(Arquivo arquivo: listaArquivos) {
+				if(arquivo.getNomeArquivo().equalsIgnoreCase(nomeArquivo))
+					return arquivo;
+			}
+		}
+	
+		return null;
 	}
 }
