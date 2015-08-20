@@ -212,8 +212,8 @@ public class ClienteServico {
 	        ByteArrayOutputStream bao = new ByteArrayOutputStream();
 			ObjectOutputStream ous;
 			ous = new ObjectOutputStream(bao);
-			ous.writeObject(arquivo);
 			ous.writeInt(Constantes.STORAGE_REMOVE_ARQUIVO);
+			ous.writeObject(arquivo);
 	       
 			System.out.println("Removendo arquivo...");
 	        bufferSaida.write(bao.toByteArray());
@@ -246,8 +246,9 @@ public class ClienteServico {
            ByteArrayOutputStream bao = new ByteArrayOutputStream();
 		   ObjectOutputStream ous;
 		   ous = new ObjectOutputStream(bao);
-		   ous.writeObject(novoArquivo);
 		   ous.writeInt(Constantes.STORAGE_SALVA_ARQUIVO);
+		   ous.writeObject(novoArquivo);
+		
 		   return bao.toByteArray();
 	    } catch (IOException e) {
 	       e.printStackTrace();

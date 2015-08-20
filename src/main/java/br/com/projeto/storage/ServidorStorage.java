@@ -56,8 +56,6 @@ public class ServidorStorage {
 		return true;	
 	}
 	
-
-	@SuppressWarnings("unused")
 	private static boolean aguardaCliente() {
 		Socket cliente = null;
 		List<Object> dadosCliente = new ArrayList<Object>();
@@ -73,8 +71,8 @@ public class ServidorStorage {
 			//le os dados de entrada do cliente
 			System.out.println("Lendo os dados do cliente...");
 			dadosCliente = trataDadosCliente(cliente);
-			arquivo = (Arquivo) dadosCliente.get(0);
-			opcao = (Integer) dadosCliente.get(1);
+			opcao = (Integer) dadosCliente.get(0);
+			arquivo = (Arquivo) dadosCliente.get(1);
 			
 			//trata a opção do cliente
 			res = trataOpcaoCliente(arquivo, opcao);
@@ -84,7 +82,7 @@ public class ServidorStorage {
 			e.printStackTrace();
 			return false;
 		}
-		return true;
+		return res;
 	}
 
 	//Método para tratar a opção desejada do cliente
@@ -154,8 +152,9 @@ public class ServidorStorage {
 	}
 
 	/*Le os dados do cliente e retorna uma lista de Object com os dados do cliente
-	  dadosCliente: 0 - Dados do arquivo enviado
-					1 - Opção do cliente */
+	  dadosCliente: 0 - Opção do cliente
+	  				1 - Dados do arquivo enviado */
+					
 	public static List<Object> trataDadosCliente(Socket cliente) {
 		byte[] dadosEntrada = null;
         ByteArrayInputStream in = null;
@@ -171,8 +170,8 @@ public class ServidorStorage {
 		    objIn = new ObjectInputStream(in);
 	        
 		    //Le a opção do cliente e os dados do arquivo enviado
-	       	dadosCliente.add((Arquivo) objIn.readObject());
-	        dadosCliente.add((Integer) objIn.readInt());
+		    dadosCliente.add((Integer) objIn.readInt());
+		    dadosCliente.add((Arquivo) objIn.readObject());
 	        
 	        in.close();
 	        objIn.close();
