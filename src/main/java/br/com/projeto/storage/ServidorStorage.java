@@ -2,21 +2,30 @@ package br.com.projeto.storage;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import bftsmart.tom.ServiceProxy;
 import br.com.projeto.diretorio.Arquivo;
+import br.com.projeto.diretorio.MapDiretorio;
 import br.com.projeto.utils.Constantes;
 
 public class ServidorStorage {
 	private static Storage storage;
+	private	static ServerSocket serverSocket;
+	private static ServiceProxy KVProxy;
 	
 	public static void main(String args[]) throws IOException {
 		if(args.length < 1) {
@@ -30,25 +39,37 @@ public class ServidorStorage {
 		}
 	}
 	
-	/*Parametros de input args: 0 - nome do storage
-	 * 							1 - porta de conexão
-	 *                          2 - espaço livre de armazenamento
-	 *                          3 - local de armazenamento */
+	/*Parametros de input args:	0 - id storage
+	 *                          1 - porta de conexão
+	 *                          2 - espaço livre de armazenamento 
+	 *                          3 - local de armazenamento*/
 	
 	@SuppressWarnings("static-access")
 	private static boolean iniciaServidor(String[] args) {
-		storage = new Storage(args[0], Integer.parseInt(args[1]), Long.parseLong(args[2]), 
-				new ArrayList<Arquivo>(), args[3]);
-		
+		storage = new Storage(Integer.parseInt(args[0]), Integer.parseInt(args[1]), 
+				Long.parseLong(args[2]), args[3] ,new ArrayList<Arquivo>());
+
 		try {
-			storage.setSocket(new ServerSocket(storage.getPortaConexao()));
-			storage.setEnderecoHost(storage.getSocket().getInetAddress().
-					getLocalHost().getHostAddress());
+			serverSocket = new ServerSocket(storage.getPortaConexao());
+			storage.setNomeStorage(serverSocket.getInetAddress().getLocalHost().getHostName());
+			storage.setEnderecoHost(serverSocket.getInetAddress().getLocalHost().getHostAddress());
 		} catch (IOException e) {
 			System.out.println("Erro na inicialização do servidor storage!");
 			e.printStackTrace();
 			return false;
 		}
+		
+		//cria o objeto de proxy com o Id informado como parametro
+		try {
+			KVProxy = new ServiceProxy(storage.getIdServidor(), "config");
+			if (!enviaDadosStorage(storage))
+				throw new Exception();
+			System.out.println("Dados enviados para o servidor de meta dados com sucesso!");
+		} catch (Exception e) {
+			System.out.println("Erro de comunicação com os servidores!");
+			System.exit(-1);
+		}
+		
 		System.out.println("Servidor iniciado com sucesso!");
 		System.out.println("Endereço: " + storage.getEnderecoHost());
 		System.out.println("Porta: " + storage.getPortaConexao());
@@ -56,6 +77,34 @@ public class ServidorStorage {
 		return true;	
 	}
 	
+	//Método para enviar os dados do storage para o servidor de meta dados
+	private static boolean enviaDadosStorage(Storage storage) {
+		boolean res = false;
+		
+		try {
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(out); 
+			
+			dos.writeInt(Constantes.STORAGE_ENVIA_DADOS);
+			
+			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(storage);
+			out1.close();
+			
+			byte[] rep = KVProxy.invokeOrdered(out.toByteArray());
+			ByteArrayInputStream in = new ByteArrayInputStream(rep);
+	        ObjectInputStream objIn = new ObjectInputStream(in);
+		    
+		    res = objIn.readBoolean();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			res = false;  
+		}
+		return res;
+	}
+
+	//Método que aguarda novas requisições dos clientes
 	private static boolean aguardaCliente() {
 		Socket cliente = null;
 		List<Object> dadosCliente = new ArrayList<Object>();
@@ -65,7 +114,7 @@ public class ServidorStorage {
 		
 		try {
 			System.out.println("\nAguardando novo cliente...");
-			cliente = storage.getSocket().accept();
+			cliente = serverSocket.accept();
 			System.out.println("Novo cliente conectado, cliente: " + cliente.getInetAddress().getHostAddress());
 			
 			//le os dados de entrada do cliente
@@ -136,6 +185,7 @@ public class ServidorStorage {
 		return true;
 	}
 	
+	//Método para remover um arquivo do storage
 	private static boolean removeArquivo(Arquivo dadosArquivo,
 			String localArmazenamento) {
 		String localArquivo = storage.getLocalArmazenamento() + dadosArquivo.getNomeArquivo();
@@ -188,11 +238,11 @@ public class ServidorStorage {
 		return dadosCliente;
 	}
 
-
+	//Método para finalizar o servidor de storage
 	public static void terminaServidor() {
 		System.out.println("Finalizando servidor!");
 		try {
-			storage.getSocket().close();
+			serverSocket.close();
 			System.out.println("Servidor finalizado com sucesso!");
 		} catch (IOException e) {
 			System.out.println("Erro na finalização do servidor!");

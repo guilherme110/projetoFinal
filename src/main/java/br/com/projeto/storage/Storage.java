@@ -1,6 +1,6 @@
 package br.com.projeto.storage;
 
-import java.net.ServerSocket;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,7 +9,11 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import br.com.projeto.diretorio.Arquivo;
 
-public class Storage {
+public class Storage implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final AtomicInteger count = new AtomicInteger(0); 
 	private String 		  nomeStorage;
 	private String 		  enderecoHost;
@@ -18,21 +22,18 @@ public class Storage {
 	private List<Arquivo> listaArquivos;
 	private int           idServidor;
 	private String	      localArmazenamento;
-	private	ServerSocket  socket;
 	
 	public Storage() {
 		this.idServidor = count.incrementAndGet();
 	}
 	
-	//FIXME Verificar se o storage pode ter arquivos com o mesmo nome
-	public Storage(String nomeStorage, int portaConexao, long espacoLivre, 
-			List<Arquivo> listaArquivos, String localArmazenamento) {
+	public Storage(int idServidor, int portaConexao, long espacoLivre, 
+			String localArmazenamento, List<Arquivo> listaArquivos) {
 		super();
-		this.nomeStorage = nomeStorage;
 		this.portaConexao = portaConexao;
 		this.espacoLivre = espacoLivre;
 		this.listaArquivos = listaArquivos;
-		this.idServidor = count.incrementAndGet();
+		this.idServidor = idServidor;
 		this.localArmazenamento = localArmazenamento;
 	}
 	public String getNomeStorage() {
@@ -79,14 +80,6 @@ public class Storage {
 
 	public void setLocalArmazenamento(String localArmazenamento) {
 		this.localArmazenamento = localArmazenamento;
-	}
-
-	public ServerSocket getSocket() {
-		return socket;
-	}
-
-	public void setSocket(ServerSocket socket) {
-		this.socket = socket;
 	}
 
 	public List<String> getListaNomeArquivos() {

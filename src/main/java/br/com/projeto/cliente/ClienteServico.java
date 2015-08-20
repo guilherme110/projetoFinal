@@ -20,11 +20,6 @@ import br.com.projeto.utils.Constantes;
 public class ClienteServico {
 	public MapDiretorio mapDiretorio;
 	
-	//FIXME Verificar como definir o nome do diretorio do cliente
-	public String getDiretorioCliente(Cliente cliente) {
-		return cliente.getNomeCliente();
-	}
-	
 	//Cria o objeto de conexão com os servidores.
 	public ClienteServico(Cliente cliente) {
 		mapDiretorio = new MapDiretorio(cliente.getConexao());

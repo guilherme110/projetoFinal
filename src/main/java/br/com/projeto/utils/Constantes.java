@@ -13,6 +13,7 @@ public class Constantes {
 	public static final int BUSCA_ARQUIVO 	   = 7;
 	
 	/*Opções para storage*/
-	public static final int STORAGE_SALVA_ARQUIVO  = 1;
-	public static final int STORAGE_REMOVE_ARQUIVO = 2;
+	public static final int STORAGE_SALVA_ARQUIVO  = 10;
+	public static final int STORAGE_REMOVE_ARQUIVO = 11;
+	public static final int STORAGE_ENVIA_DADOS    = 12;
 }

@@ -9,7 +9,7 @@ import java.util.Scanner;
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.utils.Formatacao;
 
-public class ServidorCliente {
+public class AplicacaoCliente {
 	private static ClienteServico clienteServico;
 	private static Cliente cliente;
 	private static ServiceProxy KVProxy;

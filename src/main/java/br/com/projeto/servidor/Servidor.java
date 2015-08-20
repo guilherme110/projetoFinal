@@ -31,16 +31,11 @@ public class Servidor extends DefaultSingleRecoverable {
 	Map<Integer, Storage> tabelaStorage;
 	
 	//FIXME Verificar como um novo storage irá se cadastrar na lista de storage
-	public Servidor(int idServidor) {
-		Storage local = new Storage("Storage Local", 10101, 2000000, 
-				new ArrayList<Arquivo>(), "/home/guilherme/TesteProjeto/");
-		local.setEnderecoHost("127.0.0.1");
-		
+	public Servidor(int idServidor) {		
 		this.idServidor = idServidor;
 		arvoreDiretorio = new ArvoreDiretorio();
 		servidorServico = new ServidorServico();
 		tabelaStorage =  new HashMap<Integer,Storage>();
-		tabelaStorage.put(local.getIdServidor(), local);
 		new ServiceReplica(idServidor, this, this);
 	}
 
@@ -70,6 +65,9 @@ public class Servidor extends DefaultSingleRecoverable {
 				break;	
 			case Constantes.APAGA_ARQUIVO:
 				resposta = opcaoApagaArquivo(dados);
+			case Constantes.STORAGE_ENVIA_DADOS:
+				resposta = servidorServico.salvaStorage(dados, tabelaStorage);
+				break;
 			default:
 				break;
 			}

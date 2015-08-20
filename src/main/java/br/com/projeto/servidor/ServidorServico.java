@@ -171,4 +171,28 @@ public class ServidorServico {
 	    System.out.println("Arquivo: " + nomeArquivo + "   Existe: " + res);
 	    return saida.toByteArray();
 	}
+
+	public byte[] salvaStorage(ByteArrayInputStream dados,
+			Map<Integer, Storage> tabelaStorage) throws IOException {
+		boolean res = false;
+		Storage novoStorage = new Storage();
+		
+		ObjectInputStream objIn = new ObjectInputStream(dados);
+	    try {
+	    	novoStorage = (Storage) objIn.readObject();
+	    	tabelaStorage.put(novoStorage.getIdServidor(), novoStorage);
+	    	res = true;
+	    } catch (ClassNotFoundException ex) {
+	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       res = false;
+	    }
+	   
+	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
+	    objOut.writeBoolean(res);
+	    objOut.close();
+	    
+	    System.out.println("Storage: " + novoStorage.getNomeStorage() + " salvo com sucesso!");
+	    return saida.toByteArray();
+	}
 }
