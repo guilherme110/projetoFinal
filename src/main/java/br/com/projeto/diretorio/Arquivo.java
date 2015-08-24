@@ -4,10 +4,14 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
 
+/**Classe para objetos do tipo Arquivo
+ * Está contido o nome do arquivo, tamanho do arquivo,
+ * id do storage que o arquivo está salvo,
+ * tipo do arquivo, data de criação do arquivo e dados do arquivo
+ * 
+ * **/
 public class Arquivo implements Serializable{
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	private String nomeArquivo;
 	private Long   tamanhoArquivo;

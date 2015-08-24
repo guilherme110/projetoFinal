@@ -6,6 +6,11 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+/**Classe que cria o objeto do tipo Diretorio
+ * Está contido o nome do diretório, total de arquivos e a lista de arquivos.
+ * @author guilherme
+ *
+ */
 public class Diretorio implements Serializable{
 	/**
 	 * 

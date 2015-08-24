@@ -3,11 +3,12 @@ package br.com.projeto.diretorio;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**Classe do objeto Tree da arvore de diretórios
+ * 
+ * @param <T>
+ */
 public class Tree<T> implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private Node<T> root;
 

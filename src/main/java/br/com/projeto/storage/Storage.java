@@ -9,6 +9,13 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import br.com.projeto.diretorio.Arquivo;
 
+/**Classe que cria o objeto Storage
+ * Contêm: nome do storage, endereço de host, porta de conexão,
+ * espaço livre, lista de arquivos, id do servidor e local default de armazenamento
+ * 
+ * @author guilherme
+ *
+ */
 public class Storage implements Serializable {
 	/**
 	 * 

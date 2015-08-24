@@ -24,13 +24,24 @@ import br.com.projeto.diretorio.ArvoreDiretorio;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 
+/**Classe do objeto Servidor de metadados
+ * Contêm o id do servidor, a arvore de diretorio,
+ * o objeto servidor serviço e o objeto da tabela de storage.
+ *
+ */
 public class Servidor extends DefaultSingleRecoverable {
 	private int 	idServidor;
 	ArvoreDiretorio arvoreDiretorio;
 	ServidorServico servidorServico;
 	Map<Integer, Storage> tabelaStorage;
 	
-	//FIXME Verificar como um novo storage irá se cadastrar na lista de storage
+	/**Construtor da classe, recebe o id do servidor, passado como
+	 * argumento ao inicializar a classe.
+	 * Inicializa os outros objetos do servidor.
+	 * Inicializa a comunicação via BFT-Smart
+	 * 
+	 * @param idServidor
+	 */
 	public Servidor(int idServidor) {		
 		this.idServidor = idServidor;
 		arvoreDiretorio = new ArvoreDiretorio();
@@ -39,7 +50,11 @@ public class Servidor extends DefaultSingleRecoverable {
 		new ServiceReplica(idServidor, this, this);
 	}
 
-
+	/**Método de inicialização do servidor
+	 * Recebe como argumento o id do servidor
+	 * 
+	 * @param args id do servidor
+	 */
 	public static void main(String[] args){
         if(args.length < 1) {
             System.out.println("Necessário passar o <id do Servidor>");
@@ -48,6 +63,15 @@ public class Servidor extends DefaultSingleRecoverable {
         new Servidor(Integer.parseInt(args[0]));
 	}
 	
+	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
+	 * appExecuteOrdered são métodos que são realizados de forma ordenada
+	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado
+	 * 
+	 * @param dadosCliente stream de dados vindo do cliente
+	 * @param msgCtx dados do BFT-Smart
+	 * 
+	 * @return resposta para o cliente
+	 */
 	@Override
 	public byte[] appExecuteOrdered(byte[] dadosCliente, MessageContext msgCtx) {
 		byte[] resposta = null;
@@ -64,7 +88,8 @@ public class Servidor extends DefaultSingleRecoverable {
 				resposta = opcaoSalvaArquivo(dados);
 				break;	
 			case Constantes.APAGA_ARQUIVO:
-				resposta = opcaoApagaArquivo(dados);
+				resposta = opcaoRemoveArquivo(dados);
+				break;
 			case Constantes.STORAGE_ENVIA_DADOS:
 				resposta = servidorServico.salvaStorage(dados, tabelaStorage);
 				break;
@@ -78,6 +103,15 @@ public class Servidor extends DefaultSingleRecoverable {
 		return resposta;
 	}
 
+	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
+	 * appExecuteUnordered são métodos que são realizados de forma desordenada
+	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado
+	 * 
+	 * @param dadosCliente stream de dados vindo do cliente
+	 * @param msgCtx dados do BFT-Smart
+	 * 
+	 * @return resposta para o cliente
+	 */
 	@Override
 	public byte[] executeUnordered(byte[] dadosCliente, MessageContext msgCtx) {
 		byte[] resposta = null;
@@ -107,6 +141,11 @@ public class Servidor extends DefaultSingleRecoverable {
 		return resposta;
 	}
 
+	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
+	 * Cria um snapshot da situação atual do objeto arvore diretorio
+	 * 
+	 * @param state
+	 */
 	@Override
     public void installSnapshot(byte[] state) {
         try {             
@@ -124,7 +163,11 @@ public class Servidor extends DefaultSingleRecoverable {
         }
     }
 
-	//pegar a atual situação dos diretorios
+	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
+	 * Pega o snapshot da situação atual do objeto arvore diretorio
+	 * 
+	 * @return new byte
+	 */
 	@Override
 	public byte[] getSnapshot() {
 		try {
@@ -142,6 +185,17 @@ public class Servidor extends DefaultSingleRecoverable {
         }   
 	}
 	
+	/**Método para salvar um novo arquivo no servidor de metadados
+	 * Primeiro le os dados de entrada do cliente e monta o objeto novoArquivo e diretorioCliente
+	 * Depois verifica o melhor storage para salvar o arquivo
+     * Caso encontre um storage, atualiza o novo arquivo com o id do storage, 
+     * Chama o serviço para atualiza os dados da arvore de diretorio e
+     * chama o serviço para atualiza os dados da tabela de storage.
+     * Por ultimo atualiza os dados do objeto de saida dadosSaida com os dados do storage encontrado
+     * 
+	 * @param dados do cliente
+	 * @return dados do storage utilizado
+	 */
 	@SuppressWarnings("unchecked")
 	public byte[] opcaoSalvaArquivo(ByteArrayInputStream dados) {
 		Storage melhorStorage 	      = new Storage();
@@ -169,11 +223,6 @@ public class Servidor extends DefaultSingleRecoverable {
 			ex.printStackTrace(); 
 		}
 		
-	    /*caso encontre um storage:
-	    atualiza o novo arquivo com o id do storage 
-	    atualiza os dados da tabela de storage
-	    atualiza os dados da arvore de diretorio
-	    atualiza os dados do objeto de saida dadosSaida.*/
 		melhorStorage = servidorServico.buscaMelhorStorage(novoArquivo, tabelaStorage);
 		if (melhorStorage != null) {
 			System.out.println("Encontrado melhor storage: " + melhorStorage.getNomeStorage());
@@ -211,9 +260,18 @@ public class Servidor extends DefaultSingleRecoverable {
 		return saida.toByteArray();
 	}
 	
-
+	/**Método para remover um arquivo do servidor de metadados
+	 * Primeiro le os dados de entrada do cliente e monta o objeto arquivo e diretorioCliente
+	 * Depois verifica se o arquivo existe nesse diretório, caso exista apaga ele da arvoreDiretorio
+	 * Em seguida verifica o storage onde o arquivo está salvo e remove ele do storage e
+	 * atualiza a tabela de storage.
+     * Por ultimo atualiza os dados do objeto de saida dadosSaida com os dados do storage atualizado
+     * 
+	 * @param dados do cliente
+	 * @return dados do storage atualizado
+	 */
 	@SuppressWarnings("unchecked")
-	private byte[] opcaoApagaArquivo(ByteArrayInputStream dados) {
+	private byte[] opcaoRemoveArquivo(ByteArrayInputStream dados) {
 		Storage storage			      = new Storage();
 		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
 		List<String> dadosSaida 	  = new ArrayList<String>();
@@ -239,10 +297,6 @@ public class Servidor extends DefaultSingleRecoverable {
 			ex.printStackTrace(); 
 		}
 		
-	    /*apaga o arquivo na arvoreDiretorio e verifica se o arquivo existe  nesse diretorio
-	    verifica o storage onde o arquivo está salvo
-	    atualiza a tabela de storage
-	    atualiza os dados do objeto de saida dadosSaida.*/
 		if (servidorServico.apagaArquivo(arquivo, diretorioCliente, arvoreDiretorio)) {
 			storage = tabelaStorage.get(arquivo.getIdStorage());
 			servidorServico.remArquivoTabelaStorage(arquivo, storage, tabelaStorage);	
@@ -271,9 +325,6 @@ public class Servidor extends DefaultSingleRecoverable {
 		}
 		return saida.toByteArray();
 	}
-
-
-
 
 	public int getIdServidor() {
 		return idServidor;

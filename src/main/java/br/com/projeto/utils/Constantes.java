@@ -1,5 +1,10 @@
 package br.com.projeto.utils;
 
+/**Classe de constantes do projeto
+ * 
+ * @author guilherme
+ *
+ */
 public class Constantes {
 	/*Opções para diretórios*/
 	public static final int VERIFICA_DIRETORIO = 1;

@@ -2,6 +2,11 @@ package br.com.projeto.utils;
 
 import java.text.DecimalFormat;
 
+/**Classe com métodos úteis para o projeto
+ * 
+ * @author guilherme
+ *
+ */
 public class Formatacao {
 	public Formatacao() {
 		

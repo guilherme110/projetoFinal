@@ -2,16 +2,12 @@ package br.com.projeto.diretorio;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,14 +15,32 @@ import bftsmart.tom.ServiceProxy;
 import br.com.projeto.servidor.Servidor;
 import br.com.projeto.utils.Constantes;
 
-public class MapDiretorio implements Map<String, Map<String,byte[]>>{
+/**Classe do objeto mapDiretorio responsável pelos métodos de comunicação com o servidor
+ * de metadados.
+ * @author guilherme
+ *
+ */
+public class MapDiretorio {
 	private ServiceProxy conexao;
 	ByteArrayOutputStream out = null;
     
+	/**Construtor que setá a conexão com o servidor de metadados
+	 * 
+	 * @param conexao
+	 */
 	public MapDiretorio(ServiceProxy conexao) {
 		this.setConexao(conexao);
 	}
 	
+	/**Método que salva um arquivo no servidor de metadados
+	 * Serializa os parametros arquivo e diretorio do cliente para serem enviados
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
+	 * Por última serializa o objeto de retorno statusStorage com os dados do storage que foi salvo o arquivo
+	 * 
+	 * @param novoArquivo
+	 * @param diretorioCliente
+	 * @return Dados do storage que foi salvo o arquivo
+	 */
 	@SuppressWarnings("unchecked")
 	public List<String> salvaArquivo(Arquivo novoArquivo, List<String> diretorioCliente) {
 		List<String> statusStorage = new ArrayList<String>();
@@ -58,8 +72,17 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		return statusStorage;
 	}
 	
+	/**Método que remove um arquivo do servidor de metadados
+	 * Serializa os parametros arquivo e diretorio do cliente para serem enviados
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
+	 * Por última serializa o objeto de retorno statusStorage com os dados do storage que foi removido o arquivo
+	 * 
+	 * @param arquivo
+	 * @param diretorioCliente
+	 * @return Dados do storage que foi removido o arquivo.
+	 */
 	@SuppressWarnings("unchecked")
-	public List<String> apagaArquivo(Arquivo arquivo, List<String> diretorioCliente) {
+	public List<String> removeArquivo(Arquivo arquivo, List<String> diretorioCliente) {
 		List<String> statusStorage = new ArrayList<String>();
 		try {
 			out = new ByteArrayOutputStream();
@@ -89,28 +112,14 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		return statusStorage;
 	}
 	
-	public boolean containsKey(String key) {
-		boolean res = true;
-		try {
-			out = new ByteArrayOutputStream();
-			byte[] rep;
-			
-			DataOutputStream dos = new DataOutputStream(out); 
-			dos.writeInt(Constantes.VERIFICA_DIRETORIO);
-			dos.writeUTF((String) key);
-			
-			rep = this.getConexao().invokeUnordered(out.toByteArray());
-			ByteArrayInputStream in = new ByteArrayInputStream(rep);
-			res = new DataInputStream(in).readBoolean();
-			
-		} catch (IOException ex) {
-			ex.printStackTrace();
-			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			res = false;
-		}
-		return res;
-	}
-	
+	/**Método que busca a lista de dados do diretório do cliente no servidor de metadados
+	 * Serializa o parametro diretorio do cliente para ser enviado
+	 * Chama o método inokeUnordered para enviar os parametros para o servidor de metadados
+	 * Por última serializa o objeto de retorno listaDados com os dados do diretório do cliente.
+	 * 
+	 * @param diretorioCliente
+	 * @return Lista com os dados do diretório do cliente.
+	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<List<String>> getListaDados(List<String> diretorioCliente) {
 		try {
@@ -140,16 +149,25 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		}
 	}
 	
-	public String put(String key, List<String> list) {
+	/**Método que cria um novo diretorio no servidor de metadados
+	 * Serializa os parametros nome do diretorio e diretorio do cliente para serem enviados
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
+	 * Por última serializa a mensagem de status da operação de retorno.
+	 * 
+	 * @param novoDiretorio
+	 * @param diretorioCliente
+	 * @return MEnsagem de status da solicitação
+	 */
+	public String criaDiretorio(String novoDiretorio, List<String> diretorioCliente) {
 		String msgSaida = "";
 		try {
 			out = new ByteArrayOutputStream();
 			
 			DataOutputStream dos = new DataOutputStream(out); 
 			dos.writeInt(Constantes.CRIA_DIRETORIO); 
-			dos.writeUTF(key);
+			dos.writeUTF(novoDiretorio);
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
-			out1.writeObject(list);
+			out1.writeObject(diretorioCliente);
 			out1.close();
 			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
@@ -169,6 +187,17 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		return msgSaida;
 	}
 	
+	/**Método que busca um arquivo no servidor de metadados
+	 * Serializa os parametros nome do arquivo e diretorio do cliente para serem enviados
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
+	 * Por última serializa o objeto de retorno que são:
+	 	** res: contem o status da solicitação 
+	 	** arquivo: arquivo encontrado, caso res == true
+	 * 
+	 * @param nomeArquivo
+	 * @param diretorioCliente
+	 * @return Status da solicitação e o objeto Arquivo encontrado
+	 */
 	public Arquivo buscaArquivo(String nomeArquivo,
 			List<String> diretorioCliente) {
 		Arquivo arquivo = null;
@@ -176,7 +205,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		try {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
-			
 			
 			dos.writeInt(Constantes.BUSCA_ARQUIVO);
 			dos.writeUTF((String) nomeArquivo);
@@ -190,7 +218,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 	        ObjectInputStream objIn = new ObjectInputStream(in);
 		    
 	        //caso não exista o arquivo o primeiro parametro da resposta (res) é falso
-	        
 	        try {
 	        	res = (boolean) objIn.readObject();
 		        if (res == false)
@@ -207,6 +234,15 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		return arquivo;
 	}
 	
+	/**Método que verifica um diretório no servidor de metadados
+	 * Serializa os parametros nome do diretorio e diretorio do cliente para serem enviados
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
+	 * Por última serializa o objeto de retorno boolean, com o status da solicitação
+	 * 
+	 * @param nomeDiretorio
+	 * @param diretorioCliente
+	 * @return Boolean caso encontre ou não o diretório no diretório do cliente
+	 */
 	public boolean verificaDiretorio(String nomeDiretorio,
 			List<String> diretorioCliente) {
 		boolean saida = true;
@@ -238,71 +274,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 		}
 		return saida;
 	}
-	
-	@Override
-	public void clear() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Map<String, byte[]> get(Object key) {
-		return null;
-	}
-	
-	@Override
-	public boolean containsKey(Object key) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean containsValue(Object value) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public Set<java.util.Map.Entry<String, Map<String, byte[]>>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public Set<String> keySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void putAll(Map<? extends String, ? extends Map<String, byte[]>> m) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Map<String, byte[]> remove(Object key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public Collection<Map<String, byte[]>> values() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	public ServiceProxy getConexao() {
 		return conexao;
@@ -310,12 +281,6 @@ public class MapDiretorio implements Map<String, Map<String,byte[]>>{
 
 	public void setConexao(ServiceProxy conexao) {
 		this.conexao = conexao;
-	}
-
-	@Override
-	public Map<String, byte[]> put(String key, Map<String, byte[]> value) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

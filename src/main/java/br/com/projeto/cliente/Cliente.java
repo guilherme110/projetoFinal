@@ -2,13 +2,17 @@ package br.com.projeto.cliente;
 
 import java.util.List;
 
-import bftsmart.tom.ServiceProxy;
-
+/**Classe para objetos do tipo Cliente
+ * Está contido o id do cliente, nome do cliente,
+ * e o diretório atual do cliente.
+ * 
+ * @author guilherme
+ *
+ */
 public class Cliente {
 	private int          idCliente;
 	private String       nomeCliente;
 	private List<String> diretorioClienteAtual;
-	private ServiceProxy conexao;
 	
 	public Cliente() {
 		
@@ -36,14 +40,6 @@ public class Cliente {
 
 	public void setDiretorioClienteAtual(List<String> diretorioClienteAtual) {
 		this.diretorioClienteAtual = diretorioClienteAtual;
-	}
-
-	public ServiceProxy getConexao() {
-		return conexao;
-	}
-
-	public void setConexao(ServiceProxy conexao) {
-		this.conexao = conexao;
 	}
 	
 }
