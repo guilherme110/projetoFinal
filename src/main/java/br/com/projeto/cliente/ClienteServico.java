@@ -16,11 +16,12 @@ import org.apache.commons.lang3.StringUtils;
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.MapDiretorio;
+import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 
-/**Classe de serviços da aplicação do cliente
+/**Classe de serviços da aplicação do cliente.
  * Cria um objeto do tipo mapDiretorio responsável pela serialização e 
- * comunicação com o servidor de metadados
+ * comunicação com o servidor de metadados.
  * 
  * @author guilherme
  *
@@ -28,15 +29,16 @@ import br.com.projeto.utils.Constantes;
 public class ClienteServico {
 	public MapDiretorio mapDiretorio;
 	
-	/**Construtor da classe
+	/**Construtor da classe.
 	 * Cria o objeto de conexão com os servidores.
+	 * 
 	 * @param kVProxy
 	 */
 	public ClienteServico(ServiceProxy kVProxy) {
 		mapDiretorio = new MapDiretorio(kVProxy);
 	}
 	
-	/**Serviço de ir para outro diretório
+	/**Serviço de ir para outro diretório.
 	 * Se o nome do diretorio que o cliente que ir é .. significa que ele que voltar um diretório, logo:
 	 	** verifica o tamanho ou a quantidade de diretório que o cliente está
 	 	** se o tamanho for 1 é por que ele está na pasta raiz (home)
@@ -66,7 +68,7 @@ public class ClienteServico {
 		}
 	}
 
-	/**Serviço que cria um novo diretório
+	/**Serviço que cria um novo diretório.
 	 * Valida o nome do novo diretório e chama o metódo de criação de diretório nos servidores.
 	 * 
 	 * @param nomeNovoDiretorio
@@ -89,8 +91,8 @@ public class ClienteServico {
 		System.out.println(msgSaida);
 	}
 
-	/**Serviço que lista os dados do diretório do cliente
-	 * Chama o metódo de lista de dados dos servidores
+	/**Serviço que lista os dados do diretório do cliente.
+	 * Chama o metódo de lista de dados dos servidores.
 	 * Recebe como resposta duas listas:
 	 	** posição 0: lista de arquivos
 	 	** posição 1: lista de diretórios
@@ -123,24 +125,18 @@ public class ClienteServico {
 		System.out.println(" ");
 	}
 
-	/**Serviço para salvar um no arquivo
-	 * Cria um objeto do tipo arquivo e realiza algumas formatações para pegar a extensão do arquivo
-	 * Chama o método de salva arquivo nos servidores e ele
-	 * retorna o melhor storage para salvar o arquivo, onde:
-	 	** melhorStorage index position: 0 - Status do Salvamento
-		**								 1 - Mensagem de retorno
-		**								 2 - endereço de host do storage
-		**								 3 - porta do host do storage
-	 * Primeiro salva o arquivo na arvore de diretorio e obtem o storage para ser salvo o arquivo
-	 * Segundo salva o arquivo no storage encontrado.
-	 * Caso ocorra algum problema ao tentar enviar o arquivo, e realizado rollback no mapDiretorio.
+	//FIXME:: Implementar mecanismo de roolback, uma vez que um storage pode ter tido o arquivo salvo
+	/**Serviço para salvar um no arquivo.
+	 * Cria um objeto do tipo arquivo e realiza algumas formatações para pegar a extensão do arquivo.
+	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
+	 * Caso a lista não seja vazia, serializa o arquivo a ser enviado e varre a lista
+	 * para enviar o arquivo para cada storage da lista.
 	 *
-	 * @param arquivo
-	 * @param cliente
+	 * @param arquivo físico a ser enviado
+	 * @param cliente dados do cliente atual
 	 */
-	
 	public void salvaArquivo(File arquivo, Cliente cliente) {
-		List<String> melhorStorage = new ArrayList<String>();
+		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo novoArquivo = new Arquivo();
 		String tipoArquivo = arquivo.getName().substring((arquivo.getName().lastIndexOf(".") + 1));
 		
@@ -148,59 +144,60 @@ public class ClienteServico {
 		novoArquivo.setTamanhoArquivo(arquivo.length());
 		novoArquivo.setTipoArquivo(tipoArquivo);
 		try {
-			melhorStorage = mapDiretorio.salvaArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
-			if ("true".equalsIgnoreCase(melhorStorage.get(0))) {
-				System.out.println("\n" + melhorStorage.get(1));
-				if (enviaArquivoStorage(melhorStorage, arquivo, novoArquivo)) {
-					System.out.println("Arquivo enviado com sucesso!");
-				} else {
-					System.out.println("Erro ao enviar o arquivo " + novoArquivo.getNomeArquivo());
-					melhorStorage = mapDiretorio.removeArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
-					if ("true".equalsIgnoreCase(melhorStorage.get(0))) {
-						System.out.println("Efetuado rollback dos dados!");
+			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
+			if (CollectionUtils.isNotEmpty(listaStorages)) {
+				byte[] bufferArquivo = serializarArquivo(arquivo, novoArquivo);
+				for (Storage storage : listaStorages) {
+					System.out.println("\nStorage: " + storage.getNomeStorage());
+					if (enviaArquivoStorage(storage, bufferArquivo)) {
+						System.out.println("Arquivo enviado com sucesso!");
+//					} else {
+//						System.out.println("Erro ao enviar o arquivo " + novoArquivo.getNomeArquivo());
+//						melhorStorage = mapDiretorio.removeArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
+//						if ("true".equalsIgnoreCase(melhorStorage.get(0))) {
+//							System.out.println("Efetuado rollback dos dados!");
+//						}
 					}
 				}
 			} else {
-				System.out.println(melhorStorage.get(1));
+				System.out.println("Erro ao salvar o arquivo no storage!");
 			}
 		} catch (Exception e) {
 			System.out.println("Erro ao salvar o arquivo!");
 		}
 	}
 	
-	/**Serviço para remover um arquivo
-	 * Cria um objeto do tipo arquivo
-	 * Chama o método de busca de arquivo nos servidores
+	/**Serviço para remover um arquivo.
+	 * Cria um objeto do tipo arquivo.
+	 * Chama o método de busca de arquivo nos servidores.
 	 * Caso o arquivo exista nos servidores, chama o método para remover o arquivo nos servidores e
-	 * esse método retorna o storage onde o arquivo foi removido, onde o storage:
-	 	** storage index position: 0 - Status do Salvamento
-		**						   1 - Mensagem de retorno
-		**						   2 - endereço de host do storage
-		**						   3 - porta do host do storage
-	 * Por último chama o serviço de comunicação com os storages para remover
-	 * o arquivo dos storages
+	 * esse método retorna uma lista com os storages a serem atualizados.
+	 * Por último varre a lista e chama o método de remover o arquivo de cada storage.
 	 * 
-	 * @param nomeArquivo
-	 * @param cliente
+	 * @param nomeArquivo nome do arquivo a ser removido
+	 * @param cliente dados do cliente
 	 */
 	
 	public void removeArquivo(String nomeArquivo, Cliente cliente) {
-		List<String> statusStorage = new ArrayList<String>();
+		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
 		
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
 		if (arquivo != null) {
 			try {
-				statusStorage = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
-				if ("true".equalsIgnoreCase(statusStorage.get(0))) {
-					System.out.println("\n" + statusStorage.get(1));
-					if (apagaArquivoStorage(statusStorage, arquivo)) {
-						System.out.println("Arquivo apagado com sucesso!");
-					} else {
-						System.out.println("Erro ao apagar o arquivo " + arquivo.getNomeArquivo());
+				listaStorages = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
+				if (CollectionUtils.isNotEmpty(listaStorages)) {
+					for (Storage storage : listaStorages) {
+						System.out.println("\nStorage: " + storage.getNomeStorage());
+						if (apagaArquivoStorage(storage, arquivo)) {
+							System.out.println("Arquivo apagado com sucesso!");
+						} else {
+							System.out.println("Erro ao apagar o arquivo do storage: " + storage.getNomeStorage());
+						}
 					}
+					
 				} else {
-					System.out.println(statusStorage.get(1));
+					System.out.println("Erro ao verificar os storages com o arquivo!");
 				}
 			} catch (Exception e) {
 				System.out.println("Erro ao apagar o arquivo!");
@@ -210,30 +207,28 @@ public class ClienteServico {
 		}			
 	}
 
-	/**Serviço que envia um novo arquivo para o storage
+	/**Serviço que envia um novo arquivo para o storage.
 	 * Primeiro cria a comunicação socket com o storage, com o host e porta
-	 * informado pelos dados do storage
-	 * Chama um método para serializar os dados a ser enviado ao storage e envia os dados ao storage.
+	 * informado pelos dados do storage.
+	 * Chama um método para serializar os dados a ser enviado ao storage e envia os dados ao storage..
 	 * 
-	 * @param statusStorage dados do storage
+	 * @param storage dados do storage
 	 * @param arquivo dados físico do arquivo a ser salvo
 	 * @param novoArquivo objeto do arquivo a ser enviado para o storage
 	 * @return Boolean se ocorreu tudo certo na transação
 	 */
-	private boolean enviaArquivoStorage(List<String> statusStorage, File arquivo, Arquivo novoArquivo) {
-		String hostStorage = statusStorage.get(2);
-		int portaStorage = Integer.parseInt(statusStorage.get(3));
+	private boolean enviaArquivoStorage(Storage storage, byte[] bufferArquivo) {
+		String hostStorage = storage.getEnderecoHost();
+		int portaStorage = storage.getPortaConexao();
 		
 		Socket cliente = null;
 		BufferedOutputStream bufferSaida = null;
-		byte[] bufferArquivo = null;
 		try {
 			cliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao servidor!"); 
 		   
 		    System.out.println("Enviando arquivo...");
 	        bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
-	        bufferArquivo = serializarArquivo(arquivo, novoArquivo);
 	        bufferSaida.write(bufferArquivo);
 	        bufferSaida.flush();
 	        bufferSaida.close();
@@ -246,19 +241,19 @@ public class ClienteServico {
 		return true;
 	}
 	
-	/** Serviço para apagar o arquivo no storage
+	/** Serviço para remover um arquivo do storage.
 	 * Primeiro cria a comunicação socket com o storage, com o host e porta
-	 * informado pelos dados do storage
+	 * informado pelos dados do storage.
 	 * Monta os dados a ser enviado ao storage e envia os dados ao storage.
 	 * Seta a opção de remover o arquivo do storage.
 	 * 
-	 * @param statusStorage dados do storage
+	 * @param storage dados do storage
 	 * @param arquivo a ser removido no storage
 	 * @return Boolean que indica que a transação ocorreu certo ou errado
 	 */
-	private boolean apagaArquivoStorage(List<String> statusStorage, Arquivo arquivo) {
-		String hostStorage = statusStorage.get(2);
-		int portaStorage = Integer.parseInt(statusStorage.get(3));
+	private boolean apagaArquivoStorage(Storage storage, Arquivo arquivo) {
+		String hostStorage = storage.getEnderecoHost();
+		int portaStorage = storage.getPortaConexao();
 		
 		Socket cliente = null;
 		BufferedOutputStream bufferSaida = null;
@@ -288,7 +283,7 @@ public class ClienteServico {
 	}
 	
 
-	/**Método que serializa os dados do arquivo a ser enviado ao storage
+	/**Método que serializa os dados do arquivo a ser enviado ao storage.
 	 * Setá a opção de salvar arquivo para o storage.
 	 * 
 	 * @param arquivo dados físico do arquivo a ser enviado

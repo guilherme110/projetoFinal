@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-/**Classe do objeto de hierarquia de diretórios
+/**Classe do objeto de hierarquia de diretórios.
  * 
  * @author guilherme
  *
@@ -17,7 +17,7 @@ public class ArvoreDiretorio implements Serializable {
 	private static Node<Object> home;
 	private Tree<Object> arvoreDiretorio;
 	
-	/**Método que cria o objeto arvoreDiretorio
+	/**Método que cria o objeto arvoreDiretorio.
 	 * Cria o diretório raiz "home"
 	 */
 	public ArvoreDiretorio() {
@@ -30,15 +30,15 @@ public class ArvoreDiretorio implements Serializable {
 		arvoreDiretorio = new Tree<Object>(home);
 	}
 
-	/**Método que adiciona um novo diretório
-	 * Primeiro cria um novo diretório
+	/**Método que adiciona um novo diretório.
+	 * Primeiro cria um novo diretório.
 	 * Segundo verifica o diretório do cliente, para pegar o diretório atual do cliente.
 	 * Por último verifica se o nome do novo diretório já existe, caso não exista,
 	 * cria o novo diretório.
 	 * 
-	 * @param diretorioCliente lista com o diretório do cliente
+	 * @param diretorioCliente lista com o diretório do cliente.
 	 * @param nomeNovoDiretorio
-	 * @return uma mensagem de status da solicitação
+	 * @return uma mensagem de status da solicitação.
 	 */
 	public String addDiretorio(List<String> diretorioCliente, String nomeNovoDiretorio) {
 		boolean encontrou = false;
@@ -76,14 +76,14 @@ public class ArvoreDiretorio implements Serializable {
 		return msgSaida;
 	}
 	
-	/**Método que adiciona um arquivo em um diretório
-	 * Primeiro verifica o diretório atual do cliente
-	 * Segundo verifica a lista de arquivos do diretório atual do cliente
+	/**Método que adiciona um arquivo em um diretório.
+	 * Primeiro verifica o diretório atual do cliente.
+	 * Segundo verifica a lista de arquivos do diretório atual do cliente.
 	 * Por último verifica se na lista de arquivos, existe algum arquivo com esse nome
-	 * caso não exista, adiciona o novo arquivo
+	 * caso não exista, adiciona o novo arquivo.
 	 * 
-	 * @param diretorioCliente lista do diretório atual do cliente
-	 * @param arquivo a ser adicionado
+	 * @param diretorioCliente lista do diretório atual do cliente.
+	 * @param arquivo a ser adicionado.
 	 * @return Boolean de status da solicitação.
 	 */
 	public boolean addArquivo(List<String> diretorioCliente, Arquivo arquivo) {
@@ -103,11 +103,11 @@ public class ArvoreDiretorio implements Serializable {
 		return false;
 	}
 	
-	/**Método que remove um arquivo de um diretório
-	 * Primeiro verifica o diretório atual do cliente
-	 * Segundo verifica a lista de arquivos do diretório atual do cliente
+	/**Método que remove um arquivo de um diretório.
+	 * Primeiro verifica o diretório atual do cliente.
+	 * Segundo verifica a lista de arquivos do diretório atual do cliente.
 	 * Por último verifica se na lista de arquivos, existe algum arquivo com esse nome
-	 * caso exista, remove o arquivo
+	 * caso exista, remove o arquivo.
 	 * 
 	 * @param diretorioCliente
 	 * @param arquivo a ser removido
@@ -136,7 +136,7 @@ public class ArvoreDiretorio implements Serializable {
 	 * 
 	 * @param listaDiretorio
 	 * @param nomeDiretorio
-	 * @return Boolean de status da solicitação
+	 * @return Boolean de status da solicitação.
  	 */
 	public boolean verificaDiretorio(List<Node<Object>> listaDiretorio, String nomeDiretorio) {
 		for (Node<Object> nodeFilho : listaDiretorio) {
@@ -149,8 +149,8 @@ public class ArvoreDiretorio implements Serializable {
 	}
 	
 	/**Metódo que verifica o diretorio do cliente atual.
-	 * Primeira pega a raiz da hierarquia do diretório
-	 * Segundo percorre a raiz de acordo com os nomes da lista do diretório atual do cliente
+	 * Primeira pega a raiz da hierarquia do diretório.
+	 * Segundo percorre a raiz de acordo com os nomes da lista do diretório atual do cliente.
 	 * 
 	 * @param diretorioCliente
 	 * @return Diretorio atual do cliente.
@@ -179,10 +179,10 @@ public class ArvoreDiretorio implements Serializable {
 		return diretorioAux;
 	}
 	
-	/**Método que lista os diretórios do diretorio atual do cliente
+	/**Método que lista os diretórios do diretorio atual do cliente.
 	 * 
 	 * @param diretorioCliente
-	 * @return List<String> com o nome dos diretórios do cliente
+	 * @return List<String> com o nome dos diretórios do cliente.
 	 */
 	public List<String> listaDiretorios(List<String> diretorioCliente) {
 		boolean encontrou = false;
@@ -211,10 +211,10 @@ public class ArvoreDiretorio implements Serializable {
 		return listaSaida;
 	}
 	
-	/**Método que lista os dados do diretório do cliente
-	 * Primeiro cria-se duas lista, uma conterá o nome dos diretórios e a outra o nome dos arquivos
-	 * Depois verifica-se o diretório atual do cliente
-	 * Apartir do diretório atual le o nome dos diretórios e o nome dos arquivos
+	/**Método que lista os dados do diretório do cliente.
+	 * Primeiro cria-se duas lista, uma conterá o nome dos diretórios e a outra o nome dos arquivos.
+	 * Depois verifica-se o diretório atual do cliente.
+	 * A partir do diretório atual le o nome dos diretórios e o nome dos arquivos.
 	 * 
 	 * @param diretorioCliente
 	 * @return ArrayList<List<String>> que contém o nome dos diretórios e o nome dos arquivos.
@@ -257,10 +257,10 @@ public class ArvoreDiretorio implements Serializable {
 		return listaSaida;
 	}
 
-	/**Método que busta um arquivo no diretório do cliente
-	 * Primeiro verifica-se o diretório atual do cliente
+	/**Método que busta um arquivo no diretório do cliente.
+	 * Primeiro verifica-se o diretório atual do cliente.
 	 * Segundo lista todos os arquivos do diretório.
-	 * Por último verifica-se se o nome de algum arquivo e igual ao arquivo procurado
+	 * Por último verifica-se se o nome de algum arquivo e igual ao arquivo procurado.
 	 * 
 	 * @param nomeArquivo a ser buscado
 	 * @param diretorioCliente

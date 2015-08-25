@@ -3,7 +3,7 @@ package br.com.projeto.diretorio;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/**Classe do objeto Tree da arvore de diretórios
+/**Classe do objeto Tree da arvore de diretórios.
  * 
  * @param <T>
  */

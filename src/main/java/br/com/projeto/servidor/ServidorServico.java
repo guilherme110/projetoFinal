@@ -28,15 +28,15 @@ public class ServidorServico {
 	
 	}
 	
-	/**Serviço para criar um nov diretório
-	 * Primeiro le os dados do cliente e monta o objeto nome do novo diretorio e diretório do cliente
-	 * Em seguida chama o metódo para adicionar o novo diretório na arvore de diretório
-	 * Por último monta os dados de saida para o cliente
+	/**Serviço para criar um nov diretório.
+	 * Primeiro le os dados do cliente e monta o objeto nome do novo diretorio e diretório do cliente.
+	 * Em seguida chama o metódo para adicionar o novo diretório na arvore de diretório.
+	 * Por último monta os dados de saida para o cliente.
 	 * 
-	 * @param dados do cliente
-	 * @param ArvoreDiretorio hierarquia de diretórios
-	 * @return
-	 * @throws IOException
+	 * @param dados do cliente.
+	 * @param ArvoreDiretorio hierarquia de diretórios.
+	 * @return mensagem de retorno para o cliente.
+	 * @throws IOException.
 	 */
 	@SuppressWarnings("unchecked")
 	public byte[] criaDiretorio(ByteArrayInputStream dados, 
@@ -61,15 +61,15 @@ public class ServidorServico {
 	    return saida.toByteArray();
 	}
 	
-	/**Serviço que lista os dados do diretório do cliente
-	 * Primeiro le os dados do cliente e monta o objeto diretório do cliente
-	 * Em seguida chama o metodo que busca a lista de dados do diretório
+	/**Serviço que lista os dados do diretório do cliente.
+	 * Primeiro le os dados do cliente e monta o objeto diretório do cliente.
+	 * Em seguida chama o metodo que busca a lista de dados do diretório.
 	 * Por último monta os dados de saida para o cliente.
 	 * 
-	 * @param dados do cliente
-	 * @param arvoreDiretorio
-	 * @return lista de dados do diretório
-	 * @throws IOException
+	 * @param dados do cliente.
+	 * @param arvoreDiretorio.
+	 * @return lista de dados do diretório.
+	 * @throws IOException.
 	 */
 	@SuppressWarnings("unchecked")
 	public byte[] listaDados(ByteArrayInputStream dados, ArvoreDiretorio arvoreDiretorio) throws IOException {
@@ -91,15 +91,15 @@ public class ServidorServico {
 	    return saida.toByteArray();
 	}
 
-	/**Serviço que verifica se um diretório existe no diretorio do cliente 
-	 * Primeiro le os dados do cliente e monta o objeto nome do diretorio e diretório do cliente
+	/**Serviço que verifica se um diretório existe no diretorio do cliente .
+	 * Primeiro le os dados do cliente e monta o objeto nome do diretorio e diretório do cliente.
 	 * Em seguida chama o metodo que busca a lista de diretorios do diretório do cliente e
-	 * verifica se o diretorio existe nessa lista
+	 * verifica se o diretorio existe nessa lista.
 	 * Por último monta os dados de saida para o cliente.
 	 * 
-	 * @param dados do cliente
-	 * @param arvoreDiretorio
-	 * @return Boolean com o status da solicitação
+	 * @param dados do cliente.
+	 * @param arvoreDiretorio.
+	 * @return Boolean com o status da solicitação.
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
@@ -127,14 +127,14 @@ public class ServidorServico {
 	    return saida.toByteArray();
 	}
 
-	/**Serviço que salva um novo arquivo
-	 * Chama o metodo que salva o arquivo na arvore de diretório
-	 * Por último retorna se conseguiu salvar ou não o arquivo
+	/**Serviço que salva um novo arquivo.
+	 * Chama o metodo que salva o arquivo na arvore de diretório.
+	 * Por último retorna se conseguiu salvar ou não o arquivo.
 	 * 
-	 * @param novoArquivo
-	 * @param diretorioCliente
+	 * @param novoArquivo dados do novo arquivo.
+	 * @param diretorioCliente dados do diretorio do cliente.
 	 * @param arvoreDiretorio
-	 * @return status da solicitação
+	 * @return status da solicitação.
 	 */
 	public boolean salvaArquivo(Arquivo novoArquivo,
 			List<String> diretorioCliente, ArvoreDiretorio arvoreDiretorio) {
@@ -144,9 +144,9 @@ public class ServidorServico {
 		return false;
 	}
 	
-	/**Serviço que remove um arquivo
-	 * Chama o metodo que remove o arquivo da arvore de diretório
-	 * Por último retorna se conseguiu remover ou não o arquivo
+	/**Serviço que remove um arquivo.
+	 * Chama o metodo que remove o arquivo da arvore de diretório.
+	 * Por último retorna se conseguiu remover ou não o arquivo.
 	 * 
 	 * @param arquivo
 	 * @param diretorioCliente
@@ -160,70 +160,87 @@ public class ServidorServico {
 		return false;
 	}
 
-	/**Serviço que adiciona um novo arquivo em um storage
-	 * Primeiro adiciona o arquivo na lista de arquivos do storage
-	 * Em seguida atualiza o espaço livre do storage
+	/**Serviço que adiciona um novo arquivo nos storages e atualiza a tabela de storages.
+	 * Varre a lista de storages a serem salvos.
+	 * Depois adiciona o arquivo na lista de arquivos do storage e atualiza o espaço livre do storage.
 	 * Por último atualiza a tabela de storages.
 	 * 
-	 * @param arquivo
-	 * @param storage
-	 * @param tabelaStorage
+	 * @param arquivo dados do arquivo a ser salvo.
+	 * @param listaStorages dados a serem retornados ao cliente.
+	 * @param tabelaStorage dados de todos os storages.
 	 */
-	public void addArquivoTabelaStorage(Arquivo arquivo, Storage storage,
+	public void addArquivoTabelaStorage(Arquivo arquivo, List<Storage> listaStorages,
 			Map<Integer, Storage> tabelaStorage) {	
-		storage.addListaArquivo(arquivo);
-		storage.setEspacoLivre(storage.getEspacoLivre() - arquivo.getTamanhoArquivo());
-		tabelaStorage.put(storage.getIdServidor(), storage);
-	}
-	
-	/**Serviço que remove um arquivo de um storage
-	 * Primeiro remove o arquivo da lista de arquivos do storage
-	 * Em seguida atualiza o espaço livre do storage
-	 * Por último atualiza a tabela de storages.
-	 * 
-	 * @param arquivo
-	 * @param storage
-	 * @param tabelaStorage
-	 */
-	public void remArquivoTabelaStorage(Arquivo arquivo, Storage storage,
-			Map<Integer, Storage> tabelaStorage) {
-		storage.remListaArquivo(arquivo);
-		storage.setEspacoLivre(storage.getEspacoLivre() + arquivo.getTamanhoArquivo());
-		tabelaStorage.put(storage.getIdServidor(), storage);
+		
+		for (Storage storage : listaStorages) {
+			storage.addListaArquivo(arquivo);
+			storage.setEspacoLivre(storage.getEspacoLivre() - arquivo.getTamanhoArquivo());
+			tabelaStorage.put(storage.getIdStorage(), storage);
+		}
 		
 	}
+	
+	/**Serviço que remove um arquivo de um storage.
+	 * Primeiro varre a lista de storages do arquivo, para verificar em quais storages o arquivo está salvo.
+	 * Em seguida remove o arquivo da lista de arquivos do storage e atualiza o espaço livre do storage.
+	 * Por último adiciona o storage na lista de storages(retorno para o cliente) e atualiza a tabela de storages.
+	 * 
+	 * @param arquivo dados do arquivo a ser removido.
+	 * @param listaStorages retorno para o cliente.
+	 * @param tabelaStorage tabela com dados de todos os storages.
+	 */
+	public void remArquivoTabelaStorage(Arquivo arquivo, List<Storage> listaStorages,
+			Map<Integer, Storage> tabelaStorage) {
+		Storage storage = new Storage();
+		
+		for (int idStorage: arquivo.getListaIdStorage()) {
+			storage = tabelaStorage.get(idStorage);
+			storage.remListaArquivo(arquivo);
+			storage.setEspacoLivre(storage.getEspacoLivre() + arquivo.getTamanhoArquivo());
+			
+			listaStorages.add(storage);
+			tabelaStorage.put(storage.getIdStorage(), storage);
+		}
+	}
 
-	/**Serviço que busca um melhor storage para o arquivo ser salvo
-	 * Primeiro varre a tabela de storages
-	 * Em seguida verifica se o espaço disponivel do storage e maior que o do novo arquivo
-	 * Por último verifica se o estorage possuí algum arquivo com o mesmo nome do novo arquivo.
+	/**Serviço que busca a lista de melhores storage para o arquivo ser salvo.
+	 * Primeiro varre a tabela de storages.
+	 * Em seguida verifica se o número de storages já salvo é menor que o definido pelo cliente.
+	 * Então verifica se o espaço disponivel do storage e maior que o do novo arquivo.
+	 * Verifica se o storage possuí algum arquivo com o mesmo nome do novo arquivo.
+	 * Por último adiciona o storage na lista de storage e atualiza a lista de id de storages do arquivo a ser salvo.
 	 * 
 	 * @param arquivo
 	 * @param tabelaStorage
-	 * @return melhorStorage encontrado
+	 * @return lista de storages atualizado.
 	 */
-	public Storage buscaMelhorStorage(Arquivo arquivo,
-			Map<Integer, Storage> tabelaStorage) {
+	public void buscaListaMelhorStorage(List<Storage> listaStorages,
+			int numeroStorages, Arquivo arquivo, Map<Integer, Storage> tabelaStorage) {
 		Storage melhorStorage = new Storage();
+		int contador = 0;
 		
 		for (Entry<Integer, Storage> key : tabelaStorage.entrySet()) {
 			melhorStorage = key.getValue();
-			if (melhorStorage.getEspacoLivre() > arquivo.getTamanhoArquivo()) {
-				if(!melhorStorage.getListaNomeArquivos().contains(arquivo.getNomeArquivo()))
-					return melhorStorage;	
+			if (contador < numeroStorages) {
+				if (melhorStorage.getEspacoLivre() > arquivo.getTamanhoArquivo()) {
+					if(!melhorStorage.getListaNomeArquivos().contains(arquivo.getNomeArquivo())) {
+						listaStorages.add(melhorStorage);
+						arquivo.addListaIdStorage(melhorStorage.getIdStorage());
+						contador ++;
+					}
+				}
 			}
 		}
-		return null;
 	}
 
-	/**Serviço que verifica se um arquivo existe no diretorio e retorna o arquivo
-	 * Primeiro le os dados de entrada e gera o objeto nomeArquivo e diretorioCliente
-	 * Em seguida chama o metodo que verifica se o arquivo está no diretório do cliente
+	/**Serviço que verifica se um arquivo existe no diretorio e retorna o arquivo.
+	 * Primeiro le os dados de entrada e gera o objeto nomeArquivo e diretorioCliente.
+	 * Em seguida chama o metodo que verifica se o arquivo está no diretório do cliente.
 	 * Caso encontre o arquivo e retornada na resposta:
 	 	** res = true
 	 	** arquivo encontrado
 	 * 
-	 * @param dados
+	 * @param dados do cliente
 	 * @param arvoreDiretorio
 	 * @return Res e Arquivo encontrado
 	 * @throws IOException
@@ -257,10 +274,10 @@ public class ServidorServico {
 	    return saida.toByteArray();
 	}
 
-	/**Serviço que adiciona um novo storage na tabela de storage
-	 * Primeiro le os dados de entrada e gera o objeto storage
+	/**Serviço que adiciona um novo storage na tabela de storage.
+	 * Primeiro le os dados de entrada e gera o objeto storage.
 	 * Em seguida insere os dados do novo storage na tabela de storage, o id na tabela sera o id do storage.
-	 * Por último gera os dados de saida para o servidor storage
+	 * Por último gera os dados de saida para o servidor storage.
 	 * 
 	 * @param dados do storage a ser adicionado
 	 * @param tabelaStorage
@@ -275,7 +292,7 @@ public class ServidorServico {
 		ObjectInputStream objIn = new ObjectInputStream(dados);
 	    try {
 	    	novoStorage = (Storage) objIn.readObject();
-	    	tabelaStorage.put(novoStorage.getIdServidor(), novoStorage);
+	    	tabelaStorage.put(novoStorage.getIdStorage(), novoStorage);
 	    	res = true;
 	    } catch (ClassNotFoundException ex) {
 	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);

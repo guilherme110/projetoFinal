@@ -2,9 +2,10 @@ package br.com.projeto.cliente;
 
 import java.util.List;
 
-/**Classe para objetos do tipo Cliente
+/**Classe para objetos do tipo Cliente.
  * Está contido o id do cliente, nome do cliente,
- * e o diretório atual do cliente.
+ * diretório atual do cliente e o
+ * número de storages que o usuário definiu para salvar os arquivos.
  * 
  * @author guilherme
  *
@@ -13,6 +14,7 @@ public class Cliente {
 	private int          idCliente;
 	private String       nomeCliente;
 	private List<String> diretorioClienteAtual;
+	private int			 FNumeroStorages;
 	
 	public Cliente() {
 		
@@ -40,6 +42,14 @@ public class Cliente {
 
 	public void setDiretorioClienteAtual(List<String> diretorioClienteAtual) {
 		this.diretorioClienteAtual = diretorioClienteAtual;
+	}
+
+	public int getFNumeroStorages() {
+		return FNumeroStorages;
+	}
+
+	public void setFNumeroStorages(int fNumeroStorages) {
+		FNumeroStorages = fNumeroStorages;
 	}
 	
 }

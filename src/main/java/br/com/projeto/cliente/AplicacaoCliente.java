@@ -21,31 +21,35 @@ public class AplicacaoCliente {
 	
 	/**Método inicial da aplicação
 	 * 
-	 * @param args Id para o proxy de comunicação com o servidor
-	 * de meta dados
+	 * @param args[0] Id para o proxy de comunicação com o servidor
+	 * de meta dados e args[1] numero de storages que o cliente deseja
+	 * que o arquivo seja salvo.
 	 */
 	public static void main(String[] args) {
 		if(args.length < 1) {
 			System.out.println("Necessário passar o <process id>");
 			System.exit(-1);
 		}
-		criaCliente(args[0]);
+		criaCliente(args[0], Integer.parseInt(args[1]));
 		carregaTela();
 		opcoesCliente();
 	}
 
 	/**Método que cria o objeto cliente, o objeto clienteServico
-	 * e cria a comunicação com os servidores de metadados
-	 * KVProxy é o serviço de proxy de comunicação com os servidores de metadados
-	 * @param idCliente
+	 * e cria a comunicação com os servidores de metadados.
+	 * KVProxy é o serviço de proxy de comunicação com os servidores de metadados.
+	 * 
+	 * @param idCliente id do cliente.
+	 * @param FNumeroStorages número de storages a serem utilizados.
 	 */	
-	public static void criaCliente(String idCliente) {
+	public static void criaCliente(String idCliente, int FNumeroStorages) {
 		cliente = new Cliente();
 		
 		cliente.setIdCliente(Integer.parseInt(idCliente));
 		cliente.setNomeCliente(idCliente);
 		cliente.setDiretorioClienteAtual(new ArrayList<String>());
 		cliente.getDiretorioClienteAtual().add("home");
+		cliente.setFNumeroStorages(FNumeroStorages);
 		
 		try {
 			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");
@@ -57,7 +61,7 @@ public class AplicacaoCliente {
 		
 	}
 	
-	/**Método que carrega as opções em tela para o cliente
+	/**Método que carrega as opções em tela para o cliente.
 	 * 
 	 */
 	public static void carregaTela() {
@@ -70,8 +74,8 @@ public class AplicacaoCliente {
 		System.out.println("exit -> sair do programa");
 	}
 
-	/**Método que finaliza a aplicação do cliente
-	 * Fecha a conexão com o servidor de metadados e o leitor de dados
+	/**Método que finaliza a aplicação do cliente.
+	 * Fecha a conexão com o servidor de metadados e o leitor de dados.
 	 * 
 	 * @param leitor de dados do cliente
 	 */
@@ -86,8 +90,8 @@ public class AplicacaoCliente {
 		System.exit(0);
 	}
 	
-	/**Método que carrega o menu de opções para o cliente
-	 * De acordo com a opção escolhida um método é chamado
+	/**Método que carrega o menu de opções para o cliente.
+	 * De acordo com a opção escolhida um método é chamado.
 	 */
 	private static void opcoesCliente() {
 		Scanner leitor = new Scanner(System.in);
@@ -128,10 +132,11 @@ public class AplicacaoCliente {
 		opcoesCliente();
 	}
 
-	/**Método que busca o diretorio atual do cliente
-	 * Formata o nome para ser apresentado na tela
-	 * @param diretorioClienteAtual
-	 * @return String com o nome do diretorio formatado
+	/**Método que busca o diretorio atual do cliente.
+	 * Formata o nome para ser apresentado na tela.
+	 * 
+	 * @param diretorioClienteAtual dados do diretório atual do cliente.
+	 * @return String com o nome do diretorio formatado.
 	 */
 	private static String buscaDiretorioAtual(List<String> diretorioClienteAtual) {
 		String diretorioAtual = "";
@@ -142,11 +147,12 @@ public class AplicacaoCliente {
 		return diretorioAtual;
 	}
 
-	/**Método de opcao para ir para um outro diretorio
-	 * Caso o nome do diretorio não seja informado solicita o nome dele
-	 * Por último chama o serviço para ir a outro diretório
-	 * @param dadosLeitura
-	 * @param leitor
+	/**Método de opcao para ir para um outro diretorio.
+	 * Caso o nome do diretorio não seja informado solicita o nome dele.
+	 * Por último chama o serviço para ir a outro diretório.
+	 * 
+	 * @param dadosLeitura dados informado pelo cliente.
+	 * @param leitor de dados do cliente.
 	 */
 	private static void opcaoMoveDiretorio(String dadosLeitura, Scanner leitor) {
 		String nomeDiretorio;
@@ -163,11 +169,12 @@ public class AplicacaoCliente {
 		
 	}
 
-	/**Método de opcao para criar um novo diretorio
-	 * Caso o nome do diretorio não seja informado solicita o nome dele
-	 * Por último chama o serviço de criar arquivo
-	 * @param dadosLeitura
-	 * @param leitor
+	/**Método de opcao para criar um novo diretorio.
+	 * Caso o nome do diretorio não seja informado solicita o nome dele.
+	 * Por último chama o serviço de criar arquivo.
+	 * 
+	 * @param dadosLeitura dados informado pelo cliente.
+	 * @param leitor de dados do cliente.
 	 */
 	private static void opcaoCriaDiretorio(String dadosLeitura, Scanner leitor) {
 		String nomeDiretorio;
@@ -182,20 +189,21 @@ public class AplicacaoCliente {
 		clienteServico.criaDiretorio(nomeDiretorio, cliente);
 	}
 
-	/**Método da opcao de salvar um arquivo
-	 * Caso o caminho para o arquivo não seja informado, solicita o nome dele
-	 * Apresenta para o cliente os dados do arquivo e uma confirmação
-	 * @param comando
-	 * @param leitor
+	/**Método da opcao de salvar um arquivo.
+	 * Caso o caminho para o arquivo não seja informado, solicita o nome dele.
+	 * Apresenta para o cliente os dados do arquivo e uma confirmação.
+	 * 
+	 * @param dadosLeitura dados informado pelo cliente.
+	 * @param leitor de dados do cliente.
 	 */
-	private static void opcaoSalvaArquivo(String comando, Scanner leitor) {
+	private static void opcaoSalvaArquivo(String dadosLeitura, Scanner leitor) {
 		File arquivoEntrada;
 		Formatacao format = new Formatacao();
 		String parametro;
 		
 		try { 
-			parametro = comando.split(" ")[1];
-			parametro = comando.substring(comando.indexOf(" ") + 1);
+			parametro = dadosLeitura.split(" ")[1];
+			parametro = dadosLeitura.substring(dadosLeitura.indexOf(" ") + 1);
 			arquivoEntrada = new File(parametro);
 		} catch (Exception e) {
 			System.out.print("Insira o local do arquivo: ");
@@ -215,18 +223,19 @@ public class AplicacaoCliente {
 		}
 	}
 	
-	/**Método de opção para remover um arquivo
+	/**Método de opção para remover um arquivo.
 	 * Caso o nome do arquivo não seja informado, solicita o nome.
 	 * Por último chama o serviço para remover o arquivo.
-	 * @param comando
-	 * @param leitor
+	 * 
+	 * @param dadosLeitura dados informado pelo cliente.
+	 * @param leitor de dados do cliente.
 	 */
-	private static void opcaoRemoveArquivo(String comando, Scanner leitor) {
+	private static void opcaoRemoveArquivo(String dadosLeitura, Scanner leitor) {
 		String nomeArquivo;
 		
 		try { 
-			nomeArquivo = comando.split(" ")[1];
-			nomeArquivo = comando.substring(comando.indexOf(" ") + 1);
+			nomeArquivo = dadosLeitura.split(" ")[1];
+			nomeArquivo = dadosLeitura.substring(dadosLeitura.indexOf(" ") + 1);
 		} catch (Exception e) {
 			System.out.print("Insira o local do arquivo: ");
 			nomeArquivo = leitor.nextLine();
@@ -234,8 +243,8 @@ public class AplicacaoCliente {
 		clienteServico.removeArquivo(nomeArquivo, cliente);
 	}
 	
-	/**Método de opção de lista os dados do diretório
-	 * Chama o serviço de listar o diretório
+	/**Método de opção de lista os dados do diretório.
+	 * Chama o serviço de listar o diretório.
 	 */
 	private static void opcaoListaDados() {
 		clienteServico.listaDados(cliente);

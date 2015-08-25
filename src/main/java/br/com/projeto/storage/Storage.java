@@ -3,7 +3,6 @@ package br.com.projeto.storage;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -21,26 +20,25 @@ public class Storage implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final AtomicInteger count = new AtomicInteger(0); 
 	private String 		  nomeStorage;
 	private String 		  enderecoHost;
 	private int    		  portaConexao;
 	private long   		  espacoLivre;
 	private List<Arquivo> listaArquivos;
-	private int           idServidor;
+	private int           idStorage;
 	private String	      localArmazenamento;
 	
 	public Storage() {
-		this.idServidor = count.incrementAndGet();
+		this.listaArquivos = new ArrayList<Arquivo>();
 	}
 	
-	public Storage(int idServidor, int portaConexao, long espacoLivre, 
+	public Storage(int idStorage, int portaConexao, long espacoLivre, 
 			String localArmazenamento, List<Arquivo> listaArquivos) {
 		super();
 		this.portaConexao = portaConexao;
 		this.espacoLivre = espacoLivre;
 		this.listaArquivos = listaArquivos;
-		this.idServidor = idServidor;
+		this.idStorage = idStorage;
 		this.localArmazenamento = localArmazenamento;
 	}
 	public String getNomeStorage() {
@@ -73,12 +71,12 @@ public class Storage implements Serializable {
 	public void setListaArquivos(List<Arquivo> listaArquivos) {
 		this.listaArquivos = listaArquivos;
 	}
-	public int getIdServidor() {
-		return idServidor;
+	public int getIdStorage() {
+		return idStorage;
 	}
 
-	public void setIdServidor(int idServidor) {
-		this.idServidor = idServidor;
+	public void setIdStorage(int idStorage) {
+		this.idStorage = idStorage;
 	}
 
 	public String getLocalArmazenamento() {

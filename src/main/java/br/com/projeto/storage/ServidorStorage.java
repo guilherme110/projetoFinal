@@ -22,8 +22,8 @@ import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.MapDiretorio;
 import br.com.projeto.utils.Constantes;
 
-/**Classe da aplicação que rodará no Storage
- * Possuí os objetos: storage, serverSocket e KVProxy
+/**Classe da aplicação que rodará no Storage.
+ * Possuí os objetos: storage, serverSocket e KVProxy.
  * 
  * @author guilherme
  *
@@ -33,7 +33,7 @@ public class ServidorStorage {
 	private	static ServerSocket serverSocket;
 	private static ServiceProxy KVProxy;
 	
-	/**Método principal da classe
+	/**Método principal da classe.
 	 * Recebe os seguintes dados como parâmetro:
 	 	** Id do storage
 	 	** Porta de conexão
@@ -57,9 +57,9 @@ public class ServidorStorage {
 	}
 	
 	
-	/**Método que inicializa o servidor
+	/**Método que inicializa o servidor.
 	 * Primeiro inicializa o objeto storage com os dados passado como parametro.
-	 * Em seguida inicializa o servidor socket, escutando na porta passada como parametro
+	 * Em seguida inicializa o servidor socket, escutando na porta passada como parametro.
 	 * Por último inicializa o objeto de comunicação com o servidor de metadados e 
 	 * chama o método para enviar os dados para o servidor de metadados.
 	 * 
@@ -87,7 +87,7 @@ public class ServidorStorage {
 		
 		//cria o objeto de proxy com o Id informado como parametro
 		try {
-			KVProxy = new ServiceProxy(storage.getIdServidor(), "config");
+			KVProxy = new ServiceProxy(storage.getIdStorage(), "config");
 			if (!enviaDadosStorage(storage))
 				throw new Exception();
 			System.out.println("Dados enviados para o servidor de meta dados com sucesso!");
@@ -136,13 +136,13 @@ public class ServidorStorage {
 		return res;
 	}
 
-	/**Método que aguarda novas requisições dos clientes
+	/**Método que aguarda novas requisições dos clientes.
 	 * Primeiro cria-se um novo socket e aguarda novas requisições nesse socket.
 	 * Em seguida trata os dados da requisição do cliente e verifica qual operação o
-	 * cliente deseja realizar
+	 * cliente deseja realizar.
 	 * Por último realiza a operação do cliente.
 	 * 
-	 * @return Boolean com o status da requisição do cliente
+	 * @return Boolean com o status da requisição do cliente.
 	 */
 	private static boolean aguardaCliente() {
 		Socket cliente = null;
@@ -173,12 +173,12 @@ public class ServidorStorage {
 		return res;
 	}
 
-	/**Método para realizar a operação desejada do cliente
-	 * Verifica qual operação o cliente deseja realizar e chama o método responsavel pela operação
+	/**Método para realizar a operação desejada do cliente.
+	 * Verifica qual operação o cliente deseja realizar e chama o método responsavel pela operação.
 	 * 
 	 * @param arquivo
 	 * @param operacao
-	 * @return Boolean com o status da operação
+	 * @return Boolean com o status da operação.
 	 */
 	private static boolean realizaOperacaoCliente(Arquivo arquivo, int operacao) {
 		boolean res = false;
@@ -213,14 +213,14 @@ public class ServidorStorage {
 		return res;
 	}
 
-	/**Método que cria o arquivo no local de armazenamento do storage
-	 * Primeiro verifica o local do novo arquivo e em seguida
+	/**Método que cria o arquivo no local de armazenamento do storage.
+	 * Primeiro verifica o local do novo arquivo e em seguida.
 	 * cria o objeto de buffer para escravar os dados do arquivo.
 	 * O objeto buffer de saida lê os dados que o cliente enviou e escreve no local de armazenamento.
 	 * 
 	 * @param novoArquivo
 	 * @param localArmazenamento
-	 * @return Boolean com status da solicitação
+	 * @return Boolean com status da solicitação.
 	 */
 	private static boolean salvaArquivo(Arquivo novoArquivo,
 			String localArmazenamento) {
@@ -238,7 +238,7 @@ public class ServidorStorage {
 		return true;
 	}
 	
-	/**Método para remover um arquivo do storage
+	/**Método para remover um arquivo do storage.
 	 * Verifica o local de armazenamento, juntamento com o nome do arquivo a ser removido.
 	 * Por último verifica se o arquivo existe, caso exista, remove o mesmo.
 	 *  
@@ -263,9 +263,9 @@ public class ServidorStorage {
 
 	/*Le os dados do cliente e retorna uma lista de Object com os dados do cliente
 	   */
-	/**Método que trata os dados da requisição do cliente
-	 * Primeiro le os dados da requisição do cliente
-	 * Em seguida cria-se uma lista de dados para retorno
+	/**Método que trata os dados da requisição do cliente.
+	 * Primeiro le os dados da requisição do cliente.
+	 * Em seguida cria-se uma lista de dados para retorno.
 	 * Monta a seguinte saida dadosCliente onde:
 	 	** 0 - Opção do cliente
 	  	** 1 - Dados do arquivo enviado				

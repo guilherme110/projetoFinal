@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**Classe do objeto Node da arvore de diretórios
+/**Classe do objeto Node da arvore de diretórios.
  *
  * @param <T>
  */

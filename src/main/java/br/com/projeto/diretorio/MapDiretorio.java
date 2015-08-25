@@ -12,11 +12,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import bftsmart.tom.ServiceProxy;
+import br.com.projeto.cliente.Cliente;
 import br.com.projeto.servidor.Servidor;
+import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 
 /**Classe do objeto mapDiretorio responsável pelos métodos de comunicação com o servidor
  * de metadados.
+ * 
  * @author guilherme
  *
  */
@@ -24,7 +27,7 @@ public class MapDiretorio {
 	private ServiceProxy conexao;
 	ByteArrayOutputStream out = null;
     
-	/**Construtor que setá a conexão com o servidor de metadados
+	/**Construtor que setá a conexão com o servidor de metadados.
 	 * 
 	 * @param conexao
 	 */
@@ -32,18 +35,18 @@ public class MapDiretorio {
 		this.setConexao(conexao);
 	}
 	
-	/**Método que salva um arquivo no servidor de metadados
-	 * Serializa os parametros arquivo e diretorio do cliente para serem enviados
-	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
-	 * Por última serializa o objeto de retorno statusStorage com os dados do storage que foi salvo o arquivo
+	/**Método que salva um arquivo no servidor de metadados.
+	 * Serializa os parametros arquivo, diretorio do cliente e o número de storages a serem salvos.
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados.
+	 * Por última serializa o objeto de retorno listaStorages com os storages a serem atualizados.
 	 * 
-	 * @param novoArquivo
-	 * @param diretorioCliente
-	 * @return Dados do storage que foi salvo o arquivo
+	 * @param novoArquivo arquivo a ser salvo.
+	 * @param diretorioCliente dados do diretório do cliente.
+	 * @return listaStorages lista com os storages a serem atualizados.
 	 */
 	@SuppressWarnings("unchecked")
-	public List<String> salvaArquivo(Arquivo novoArquivo, List<String> diretorioCliente) {
-		List<String> statusStorage = new ArrayList<String>();
+	public List<Storage> salvaArquivo(Arquivo novoArquivo, Cliente cliente) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
 		try {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
@@ -52,38 +55,39 @@ public class MapDiretorio {
 			
 			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(novoArquivo);
-			out1.writeObject(diretorioCliente);
+			out1.writeObject(cliente.getDiretorioClienteAtual());
+			out1.writeObject(cliente.getFNumeroStorages());
 			out1.close();
 			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
 	        ObjectInputStream objIn = new ObjectInputStream(in);
 		    try {
-		    	statusStorage = (List<String>) objIn.readObject();
+		    	listaStorages = (List<Storage>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
 		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		       return null;
 		    }
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			statusStorage.add("false");
-			statusStorage.add("Erro no salvamento do arquivo!");  
+			return null;  
 		}
-		return statusStorage;
+		return listaStorages;
 	}
 	
-	/**Método que remove um arquivo do servidor de metadados
-	 * Serializa os parametros arquivo e diretorio do cliente para serem enviados
-	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados
-	 * Por última serializa o objeto de retorno statusStorage com os dados do storage que foi removido o arquivo
+	/**Método que remove um arquivo do servidor de metadados.
+	 * Serializa os parametros arquivo e diretorio do cliente para serem enviados.
+	 * Chama o método inokeOrdered para enviar os parametros para o servidor de metadados.
+	 * Por última serializa o objeto de retorno listaStorages com os storages a serem atualizados.
 	 * 
-	 * @param arquivo
-	 * @param diretorioCliente
-	 * @return Dados do storage que foi removido o arquivo.
+	 * @param arquivo arquivo a ser removido
+	 * @param diretorioCliente dados do diretório do cliente
+	 * @return listaStorages lista de storages a serem atualizados
 	 */
 	@SuppressWarnings("unchecked")
-	public List<String> removeArquivo(Arquivo arquivo, List<String> diretorioCliente) {
-		List<String> statusStorage = new ArrayList<String>();
+	public List<Storage> removeArquivo(Arquivo arquivo, List<String> diretorioCliente) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
 		try {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
@@ -99,17 +103,16 @@ public class MapDiretorio {
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
 	        ObjectInputStream objIn = new ObjectInputStream(in);
 		    try {
-		    	statusStorage = (List<String>) objIn.readObject();
+		    	listaStorages = (List<Storage>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
 		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 		    }
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
-			statusStorage.add("false");
-			statusStorage.add("Erro ao tentar apagar o arquivo!");  
+			return null;
 		}
-		return statusStorage;
+		return listaStorages;
 	}
 	
 	/**Método que busca a lista de dados do diretório do cliente no servidor de metadados

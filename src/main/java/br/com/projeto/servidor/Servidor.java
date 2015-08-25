@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import bftsmart.demo.bftmap.BFTMapServer;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
@@ -24,7 +26,7 @@ import br.com.projeto.diretorio.ArvoreDiretorio;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 
-/**Classe do objeto Servidor de metadados
+/**Classe do objeto Servidor de metadados.
  * Contêm o id do servidor, a arvore de diretorio,
  * o objeto servidor serviço e o objeto da tabela de storage.
  *
@@ -38,7 +40,7 @@ public class Servidor extends DefaultSingleRecoverable {
 	/**Construtor da classe, recebe o id do servidor, passado como
 	 * argumento ao inicializar a classe.
 	 * Inicializa os outros objetos do servidor.
-	 * Inicializa a comunicação via BFT-Smart
+	 * Inicializa a comunicação via BFT-Smart.
 	 * 
 	 * @param idServidor
 	 */
@@ -50,10 +52,10 @@ public class Servidor extends DefaultSingleRecoverable {
 		new ServiceReplica(idServidor, this, this);
 	}
 
-	/**Método de inicialização do servidor
-	 * Recebe como argumento o id do servidor
+	/**Método de inicialização do servidor.
+	 * Recebe como argumento o id do servidor.
 	 * 
-	 * @param args id do servidor
+	 * @param args id do servidor.
 	 */
 	public static void main(String[] args){
         if(args.length < 1) {
@@ -64,13 +66,13 @@ public class Servidor extends DefaultSingleRecoverable {
 	}
 	
 	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
-	 * appExecuteOrdered são métodos que são realizados de forma ordenada
-	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado
+	 * appExecuteOrdered são métodos que são realizados de forma ordenada.
+	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado.
 	 * 
-	 * @param dadosCliente stream de dados vindo do cliente
-	 * @param msgCtx dados do BFT-Smart
+	 * @param dadosCliente stream de dados vindo do cliente.
+	 * @param msgCtx dados do BFT-Smart.
 	 * 
-	 * @return resposta para o cliente
+	 * @return resposta para o cliente.
 	 */
 	@Override
 	public byte[] appExecuteOrdered(byte[] dadosCliente, MessageContext msgCtx) {
@@ -104,13 +106,13 @@ public class Servidor extends DefaultSingleRecoverable {
 	}
 
 	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
-	 * appExecuteUnordered são métodos que são realizados de forma desordenada
-	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado
+	 * appExecuteUnordered são métodos que são realizados de forma desordenada.
+	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado.
 	 * 
-	 * @param dadosCliente stream de dados vindo do cliente
-	 * @param msgCtx dados do BFT-Smart
+	 * @param dadosCliente stream de dados vindo do cliente.
+	 * @param msgCtx dados do BFT-Smart.
 	 * 
-	 * @return resposta para o cliente
+	 * @return resposta para o cliente.
 	 */
 	@Override
 	public byte[] executeUnordered(byte[] dadosCliente, MessageContext msgCtx) {
@@ -141,8 +143,8 @@ public class Servidor extends DefaultSingleRecoverable {
 		return resposta;
 	}
 
-	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
-	 * Cria um snapshot da situação atual do objeto arvore diretorio
+	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart.
+	 * Cria um snapshot da situação atual do objeto arvore diretorio.
 	 * 
 	 * @param state
 	 */
@@ -163,8 +165,8 @@ public class Servidor extends DefaultSingleRecoverable {
         }
     }
 
-	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
-	 * Pega o snapshot da situação atual do objeto arvore diretorio
+	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart.
+	 * Pega o snapshot da situação atual do objeto arvore diretorio.
 	 * 
 	 * @return new byte
 	 */
@@ -185,23 +187,22 @@ public class Servidor extends DefaultSingleRecoverable {
         }   
 	}
 	
-	/**Método para salvar um novo arquivo no servidor de metadados
-	 * Primeiro le os dados de entrada do cliente e monta o objeto novoArquivo e diretorioCliente
-	 * Depois verifica o melhor storage para salvar o arquivo
-     * Caso encontre um storage, atualiza o novo arquivo com o id do storage, 
-     * Chama o serviço para atualiza os dados da arvore de diretorio e
+	/**Método para salvar um novo arquivo no servidor de metadados.
+	 * Primeiro le os dados de entrada do cliente e monta o objeto novoArquivo, diretorioCliente e numeroStorages.
+	 * Depois busca a lista com os melhores storages a serem utilizados para salvar o arquivo.
+     * Caso a lista não seja vazia, chama o serviço para atualiza os dados da arvore de diretorio e
      * chama o serviço para atualiza os dados da tabela de storage.
-     * Por ultimo atualiza os dados do objeto de saida dadosSaida com os dados do storage encontrado
+     * Por ultimo serializa a lista de storages para ser enviado ao cliente.
      * 
 	 * @param dados do cliente
-	 * @return dados do storage utilizado
+	 * @return byte lista de storages serializada.
 	 */
 	@SuppressWarnings("unchecked")
 	public byte[] opcaoSalvaArquivo(ByteArrayInputStream dados) {
-		Storage melhorStorage 	      = new Storage();
+		List<Storage> listaStorages   = new ArrayList<Storage>();
 		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
-		List<String> dadosSaida 	  = new ArrayList<String>();
 		List<String> diretorioCliente = new ArrayList<String>();
+		int numeroStorages			  = 0;
 		ObjectInputStream objIn;
 		ObjectOutputStream objOut;
 		Arquivo novoArquivo           = new Arquivo();
@@ -211,70 +212,58 @@ public class Servidor extends DefaultSingleRecoverable {
 	    	objIn = new ObjectInputStream(dados);
 	    	novoArquivo = (Arquivo) objIn.readObject();
 	    	diretorioCliente = (List<String>) objIn.readObject();
+	    	numeroStorages = (Integer) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	    	dadosSaida.add("false");
-			dadosSaida.add("Erro na leitura dos dados de entrada!");
+			System.out.println("Erro na leitura dos dados de entrada!");
 	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 	    	ex.printStackTrace(); 
 	    } catch (IOException ex) {
-	    	dadosSaida.add("false");
-			dadosSaida.add("Erro na leitura dos dados de entrada!");
+			System.out.println("Erro na leitura dos dados de entrada!");
 	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace(); 
 		}
 		
-		melhorStorage = servidorServico.buscaMelhorStorage(novoArquivo, tabelaStorage);
-		if (melhorStorage != null) {
-			System.out.println("Encontrado melhor storage: " + melhorStorage.getNomeStorage());
-			novoArquivo.setIdStorage(melhorStorage.getIdServidor());
+		servidorServico.buscaListaMelhorStorage(listaStorages, numeroStorages, novoArquivo, tabelaStorage);
+		if (CollectionUtils.isNotEmpty(listaStorages)) {
+			System.out.println("Encontrado lista com os melhores storages, tamanho da lista: " + listaStorages.size());
 			if (servidorServico.salvaArquivo(novoArquivo, diretorioCliente, arvoreDiretorio)) {
-				servidorServico.addArquivoTabelaStorage(novoArquivo, melhorStorage, tabelaStorage);	
-				dadosSaida.add("true");
-				dadosSaida.add("Melhor Storage: " + melhorStorage.getNomeStorage());
-				dadosSaida.add(melhorStorage.getEnderecoHost());
-				dadosSaida.add(Integer.toString(melhorStorage.getPortaConexao()));
+				servidorServico.addArquivoTabelaStorage(novoArquivo, listaStorages, tabelaStorage);	
 				System.out.println("Nome do arquivo salvo: " + novoArquivo.getNomeArquivo());
 				System.out.println("Tabela de Storage atualizada!");
 			} else {
-				dadosSaida.add("false");
-				dadosSaida.add("Nome de arquivo existente nesse diretório!");
 				System.out.println("Nome de arquivo existente nesse diretório!");
 			}
-		} else {
-			dadosSaida.add("false");
-			dadosSaida.add("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!"); 
+		} else { 
 			System.out.println("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!");
 		}
 
 		//monta os dados de saida
 		try {
 			objOut = new ObjectOutputStream(saida);
-			objOut.writeObject(dadosSaida);
+			objOut.writeObject(listaStorages);
 			objOut.close();
 		} catch (IOException ex) {
-			dadosSaida.add("false");
-			dadosSaida.add("Erro na escrita da saída dos dados"); 
+			System.out.println("Erro na escrita da saída dos dados"); 
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace();
 		}
 		return saida.toByteArray();
 	}
 	
-	/**Método para remover um arquivo do servidor de metadados
-	 * Primeiro le os dados de entrada do cliente e monta o objeto arquivo e diretorioCliente
-	 * Depois verifica se o arquivo existe nesse diretório, caso exista apaga ele da arvoreDiretorio
-	 * Em seguida verifica o storage onde o arquivo está salvo e remove ele do storage e
+	/**Método para remover um arquivo do servidor de metadados.
+	 * Primeiro le os dados de entrada do cliente e monta o objeto arquivo e diretorioCliente.
+	 * Depois verifica se o arquivo existe nesse diretório, caso exista apaga ele da arvoreDiretorio.
+	 * Em seguida verifica os storages onde o arquivo está salvo, remove ele de cada storage e
 	 * atualiza a tabela de storage.
-     * Por ultimo atualiza os dados do objeto de saida dadosSaida com os dados do storage atualizado
+     * Por ultimo serializa a lista de storages para ser enviada ao cliente.
      * 
 	 * @param dados do cliente
-	 * @return dados do storage atualizado
+	 * @return byte lista de storages serializada.
 	 */
 	@SuppressWarnings("unchecked")
 	private byte[] opcaoRemoveArquivo(ByteArrayInputStream dados) {
-		Storage storage			      = new Storage();
+		List<Storage> listaStorages	  = new ArrayList<Storage>();
 		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
-		List<String> dadosSaida 	  = new ArrayList<String>();
 		List<String> diretorioCliente = new ArrayList<String>();
 		ObjectInputStream objIn;
 		ObjectOutputStream objOut;
@@ -286,40 +275,30 @@ public class Servidor extends DefaultSingleRecoverable {
 	    	arquivo = (Arquivo) objIn.readObject();
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	    	dadosSaida.add("false");
-			dadosSaida.add("Erro na leitura dos dados de entrada!");
+			System.out.println("Erro na leitura dos dados de entrada!");
 	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 	    	ex.printStackTrace(); 
 	    } catch (IOException ex) {
-	    	dadosSaida.add("false");
-			dadosSaida.add("Erro na leitura dos dados de entrada!");
+	    	System.out.println("Erro na leitura dos dados de entrada!");
 	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace(); 
 		}
 		
 		if (servidorServico.apagaArquivo(arquivo, diretorioCliente, arvoreDiretorio)) {
-			storage = tabelaStorage.get(arquivo.getIdStorage());
-			servidorServico.remArquivoTabelaStorage(arquivo, storage, tabelaStorage);	
-			dadosSaida.add("true");
-			dadosSaida.add("Storage: " + storage.getNomeStorage());
-			dadosSaida.add(storage.getEnderecoHost());
-			dadosSaida.add(Integer.toString(storage.getPortaConexao()));
+			servidorServico.remArquivoTabelaStorage(arquivo, listaStorages, tabelaStorage);	
 			System.out.println("Nome do arquivo apagado: " + arquivo.getNomeArquivo());
 			System.out.println("Tabela de Storage atualizada!");
 		} else {
-			dadosSaida.add("false");
-			dadosSaida.add("Nome de arquivo não existe nesse diretório!");
 			System.out.println("Nome de arquivo não existe nesse diretório!");
 		}
 	
 		//monta os dados de saida
 		try {
 			objOut = new ObjectOutputStream(saida);
-			objOut.writeObject(dadosSaida);
+			objOut.writeObject(listaStorages);
 			objOut.close();
 		} catch (IOException ex) {
-			dadosSaida.add("false");
-			dadosSaida.add("Erro na escrita da saída dos dados"); 
+			System.out.println("Erro na escrita da saída dos dados"); 
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace();
 		}
