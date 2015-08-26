@@ -1,19 +1,14 @@
 package br.com.projeto.storage;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -145,164 +140,24 @@ public class ServidorStorage {
 	 * @return Boolean com o status da requisição do cliente.
 	 */
 	private static boolean aguardaCliente() {
-		Socket cliente = null;
-		List<Object> dadosCliente = new ArrayList<Object>();
-		Arquivo arquivo = new Arquivo();
-		int operacao = 0;
-		boolean res = false;
-		
+		Socket cliente = null;	
+		boolean res = true;
+	
 		try {
 			System.out.println("\nAguardando novo cliente...");
 			cliente = serverSocket.accept();
 			System.out.println("Novo cliente conectado, cliente: " + cliente.getInetAddress().getHostAddress());
 			
-			//le os dados de entrada do cliente
-			System.out.println("Lendo os dados do cliente...");
-			dadosCliente = trataDadosCliente(cliente);
-			operacao = (Integer) dadosCliente.get(0);
-			arquivo = (Arquivo) dadosCliente.get(1);
+			//Dispara thread para ler os dados do cliente.
+			TrataCliente trataCliente = new TrataCliente(cliente.getReceiveBufferSize(), 
+					cliente.getInputStream(), cliente.getOutputStream(), storage);
+			trataCliente.run();
 			
-			//realiza a operação do cliente
-			res = realizaOperacaoCliente(arquivo, operacao);
-			
-			cliente.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
 		}
 		return res;
-	}
-
-	/**Método para realizar a operação desejada do cliente.
-	 * Verifica qual operação o cliente deseja realizar e chama o método responsavel pela operação.
-	 * 
-	 * @param arquivo
-	 * @param operacao
-	 * @return Boolean com o status da operação.
-	 */
-	private static boolean realizaOperacaoCliente(Arquivo arquivo, int operacao) {
-		boolean res = false;
-		
-		switch (operacao) {
-		case Constantes.STORAGE_SALVA_ARQUIVO:	
-			System.out.println("Salvando arquivo:  " + arquivo.getNomeArquivo());
-			if (salvaArquivo(arquivo, storage.getLocalArmazenamento())) {
-				System.out.println("Arquivo " + arquivo.getNomeArquivo() + " salvo com sucesso!");
-				res = true;
-			} else {
-				System.out.println("Erro no salvamento do arquivo: " + arquivo.getNomeArquivo());
-				res = false;
-			}
-			break;
-		case Constantes.STORAGE_REMOVE_ARQUIVO:
-			System.out.println("Removendo o arquivo:  " + arquivo.getNomeArquivo());
-			if (removeArquivo(arquivo, storage.getLocalArmazenamento())) {
-				System.out.println("Arquivo " + arquivo.getNomeArquivo() + " removido com sucesso!");
-				res = true;
-			} else {
-				System.out.println("Erro ao tentar remover o arquivo: " + arquivo.getNomeArquivo());
-				res = false;
-			}
-			break;
-		default:
-			System.out.println("Opção inválida do cliente!");
-			res = false;
-			break;
-		}
-		
-		return res;
-	}
-
-	/**Método que cria o arquivo no local de armazenamento do storage.
-	 * Primeiro verifica o local do novo arquivo e em seguida.
-	 * cria o objeto de buffer para escravar os dados do arquivo.
-	 * O objeto buffer de saida lê os dados que o cliente enviou e escreve no local de armazenamento.
-	 * 
-	 * @param novoArquivo
-	 * @param localArmazenamento
-	 * @return Boolean com status da solicitação.
-	 */
-	private static boolean salvaArquivo(Arquivo novoArquivo,
-			String localArmazenamento) {
-		String localNovoArquivo = storage.getLocalArmazenamento() + novoArquivo.getNomeArquivo();
-        
-        FileOutputStream bufferArquivoSaida = null;
-        try {
-        	bufferArquivoSaida = new FileOutputStream(localNovoArquivo);
-        	bufferArquivoSaida.write(novoArquivo.getDadosArquivo());
-        	bufferArquivoSaida.close();
-        } catch (IOException e) {
-			e.printStackTrace();
-			return false;
-        }
-		return true;
-	}
-	
-	/**Método para remover um arquivo do storage.
-	 * Verifica o local de armazenamento, juntamento com o nome do arquivo a ser removido.
-	 * Por último verifica se o arquivo existe, caso exista, remove o mesmo.
-	 *  
-	 * @param dadosArquivo
-	 * @param localArmazenamento
-	 * @return Boolean com status da solicitação
-	 */
-	private static boolean removeArquivo(Arquivo dadosArquivo,
-			String localArmazenamento) {
-		String localArquivo = storage.getLocalArmazenamento() + dadosArquivo.getNomeArquivo();
-        
-        File arquivo = new File(localArquivo);
-		if(arquivo.exists()) {
-			arquivo.delete();
-			return true;
-		} else {
-			System.out.println("Arquivo não encontrado!");
-			return false;
-		}
-        
-	}
-
-	/*Le os dados do cliente e retorna uma lista de Object com os dados do cliente
-	   */
-	/**Método que trata os dados da requisição do cliente.
-	 * Primeiro le os dados da requisição do cliente.
-	 * Em seguida cria-se uma lista de dados para retorno.
-	 * Monta a seguinte saida dadosCliente onde:
-	 	** 0 - Opção do cliente
-	  	** 1 - Dados do arquivo enviado				
-	 * @param cliente
-	 * @return
-	 */
-	public static List<Object> trataDadosCliente(Socket cliente) {
-		byte[] dadosEntrada = null;
-        ByteArrayInputStream in = null;
-        ObjectInputStream objIn = null;
-    	List<Object> dadosCliente = new ArrayList<Object>();
-        
-		try {
-			dadosEntrada = new byte[cliente.getReceiveBufferSize()];
-			BufferedInputStream bf = new BufferedInputStream(cliente.getInputStream());
-			bf.read(dadosEntrada);
-	
-		    in = new ByteArrayInputStream(dadosEntrada);
-		    objIn = new ObjectInputStream(in);
-	        
-		    //Le a opção do cliente e os dados do arquivo enviado
-		    dadosCliente.add((Integer) objIn.readInt());
-		    dadosCliente.add((Arquivo) objIn.readObject());
-	        
-	        in.close();
-	        objIn.close();
-		} catch (SocketException e2) {
-			e2.printStackTrace();
-			return null;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
-		return dadosCliente;
 	}
 
 	/**Método para finalizar o servidor de storage
