@@ -1,15 +1,12 @@
 package br.com.projeto.storage;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -44,7 +41,6 @@ public class TrataCliente implements Runnable {
 		List<Object> listaDadosCliente = new ArrayList<Object>();
 		Arquivo arquivo = new Arquivo();
 		int operacao = 0;
-		boolean res = false;
 		
 		System.out.println("Lendo os dados do cliente...");
 		listaDadosCliente = trataDadosCliente(this.canalClienteReceberDados, this.tamanhoBufferEntrada);
@@ -52,31 +48,7 @@ public class TrataCliente implements Runnable {
 		arquivo = (Arquivo) listaDadosCliente.get(1);
 		
 		//realiza a operação do cliente
-		res = realizaOperacaoCliente(arquivo, operacao);
-		//enviaRespostaCliente(res, this.canalClienteEnviarDados);
-	}
-	
-	//FIXME: Verifica se é necessário o cliente receber uma resposta do storage.
-	/**Método que envia resposta para o cliente
-	 * 
-	 * @param res status da solicitação do cliente
-	 * @param canalClienteEnviarDados canal de envio de dados para o cliente
-	 */
-	private void enviaRespostaCliente(boolean res,
-			OutputStream canalClienteEnviarDados) {
-		try {
-			BufferedOutputStream bufferSaida = new BufferedOutputStream(canalClienteEnviarDados);
-			ByteArrayOutputStream bao = new ByteArrayOutputStream();
-			ObjectOutputStream ous;
-			ous = new ObjectOutputStream(bao);
-			ous.writeBoolean(res);
-			bufferSaida.write(bao.toByteArray());
-			bufferSaida.flush();
-		    bufferSaida.close();
-		} catch (Exception e) {
-			System.out.println("Erro ao enviar resposta para o cliente!");
-		}
-		
+		realizaOperacaoCliente(arquivo, operacao);
 	}
 
 	/**Método que trata os dados da requisição do cliente.
@@ -128,36 +100,26 @@ public class TrataCliente implements Runnable {
 	 * @param operacao
 	 * @return Boolean com o status da operação.
 	 */
-	private boolean realizaOperacaoCliente(Arquivo arquivo, int operacao) {
-		boolean res = false;
-		
+	private void realizaOperacaoCliente(Arquivo arquivo, int operacao) {
 		switch (operacao) {
 		case Constantes.STORAGE_SALVA_ARQUIVO:	
 			System.out.println("Salvando arquivo:  " + arquivo.getNomeArquivo());
-			if (salvaArquivo(arquivo, storage.getLocalArmazenamento())) {
+			if (salvaArquivo(arquivo, storage.getLocalArmazenamento()))
 				System.out.println("Arquivo " + arquivo.getNomeArquivo() + " salvo com sucesso!");
-				res = true;
-			} else {
+			else
 				System.out.println("Erro no salvamento do arquivo: " + arquivo.getNomeArquivo());
-				res = false;
-			}
 			break;
 		case Constantes.STORAGE_REMOVE_ARQUIVO:
 			System.out.println("Removendo o arquivo:  " + arquivo.getNomeArquivo());
-			if (removeArquivo(arquivo, storage.getLocalArmazenamento())) {
+			if (removeArquivo(arquivo, storage.getLocalArmazenamento()))
 				System.out.println("Arquivo " + arquivo.getNomeArquivo() + " removido com sucesso!");
-				res = true;
-			} else {
+			else
 				System.out.println("Erro ao tentar remover o arquivo: " + arquivo.getNomeArquivo());
-				res = false;
-			}
 			break;
 		default:
 			System.out.println("Opção inválida do cliente!");
-			res = false;
 			break;
 		}
-		return res;
 	}
 	
 	/**Método que cria o arquivo no local de armazenamento do storage.

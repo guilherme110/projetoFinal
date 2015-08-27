@@ -1,12 +1,10 @@
 package br.com.projeto.cliente;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,7 +123,7 @@ public class ClienteServico {
 		System.out.println(" ");
 	}
 
-	//FIXME:: Implementar mecanismo de roolback, uma vez que um storage pode ter tido o arquivo salvo
+	//FIXME: Implementar mecanismo de ROOLBACK
 	/**Serviço para salvar um no arquivo.
 	 * Cria um objeto do tipo arquivo e realiza algumas formatações para pegar a extensão do arquivo.
 	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
@@ -145,22 +143,16 @@ public class ClienteServico {
 		novoArquivo.setTipoArquivo(tipoArquivo);
 		try {
 			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
-			if (CollectionUtils.isNotEmpty(listaStorages)) {
+			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getFNumeroStorages())) {
+				System.out.println("\nLendo dados do arquivo...");
 				byte[] bufferArquivo = serializarArquivo(arquivo, novoArquivo);
 				for (Storage storage : listaStorages) {
-					System.out.println("\nStorage: " + storage.getNomeStorage());
-					if (enviaArquivoStorage(storage, bufferArquivo)) {
-						System.out.println("Arquivo enviado com sucesso!");
-//					} else {
-//						System.out.println("Erro ao enviar o arquivo " + novoArquivo.getNomeArquivo());
-//						melhorStorage = mapDiretorio.removeArquivo(novoArquivo, cliente.getDiretorioClienteAtual());
-//						if ("true".equalsIgnoreCase(melhorStorage.get(0))) {
-//							System.out.println("Efetuado rollback dos dados!");
-//						}
-					}
+					ComunicacaoClienteStorage comunicacaoClienteStorage = new ComunicacaoClienteStorage(storage, 
+							bufferArquivo, Constantes.STORAGE_SALVA_ARQUIVO);
+					comunicacaoClienteStorage.run();
 				}
 			} else {
-				System.out.println("Erro ao salvar o arquivo no storage!");
+				System.out.println("Erro ao salvar o arquivo nos storages!");
 			}
 		} catch (Exception e) {
 			System.out.println("Erro ao salvar o arquivo!");
@@ -188,14 +180,10 @@ public class ClienteServico {
 				listaStorages = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
 				if (CollectionUtils.isNotEmpty(listaStorages)) {
 					for (Storage storage : listaStorages) {
-						System.out.println("\nStorage: " + storage.getNomeStorage());
-						if (apagaArquivoStorage(storage, arquivo)) {
-							System.out.println("Arquivo apagado com sucesso!");
-						} else {
-							System.out.println("Erro ao apagar o arquivo do storage: " + storage.getNomeStorage());
-						}
-					}
-					
+						ComunicacaoClienteStorage comunicacaoClienteStorage = new ComunicacaoClienteStorage(storage, 
+								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO);
+						comunicacaoClienteStorage.run();
+					}	
 				} else {
 					System.out.println("Erro ao verificar os storages com o arquivo!");
 				}
@@ -206,83 +194,7 @@ public class ClienteServico {
 			System.out.println("Arquivo não existe nesse diretório!");
 		}			
 	}
-
-	/**Serviço que envia um novo arquivo para o storage.
-	 * Primeiro cria a comunicação socket com o storage, com o host e porta
-	 * informado pelos dados do storage.
-	 * Chama um método para serializar os dados a ser enviado ao storage e envia os dados ao storage..
-	 * 
-	 * @param storage dados do storage
-	 * @param arquivo dados físico do arquivo a ser salvo
-	 * @param novoArquivo objeto do arquivo a ser enviado para o storage
-	 * @return Boolean se ocorreu tudo certo na transação
-	 */
-	private boolean enviaArquivoStorage(Storage storage, byte[] bufferArquivo) {
-		String hostStorage = storage.getEnderecoHost();
-		int portaStorage = storage.getPortaConexao();
-		
-		Socket cliente = null;
-		BufferedOutputStream bufferSaida = null;
-		try {
-			cliente = new Socket(hostStorage, portaStorage);
-		    System.out.println("O cliente se conectou ao servidor!"); 
-		   
-		    System.out.println("Enviando arquivo...");
-	        bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
-	        bufferSaida.write(bufferArquivo);
-	        bufferSaida.flush();
-	        bufferSaida.close();
-		    cliente.close();
-		} catch (Exception e) {
-			System.out.println("Erro no envio do arquivo!");
-			e.printStackTrace();
-			return false;
-		} 
-		return true;
-	}
 	
-	/** Serviço para remover um arquivo do storage.
-	 * Primeiro cria a comunicação socket com o storage, com o host e porta
-	 * informado pelos dados do storage.
-	 * Monta os dados a ser enviado ao storage e envia os dados ao storage.
-	 * Seta a opção de remover o arquivo do storage.
-	 * 
-	 * @param storage dados do storage
-	 * @param arquivo a ser removido no storage
-	 * @return Boolean que indica que a transação ocorreu certo ou errado
-	 */
-	private boolean apagaArquivoStorage(Storage storage, Arquivo arquivo) {
-		String hostStorage = storage.getEnderecoHost();
-		int portaStorage = storage.getPortaConexao();
-		
-		Socket cliente = null;
-		BufferedOutputStream bufferSaida = null;
-		try {
-			cliente = new Socket(hostStorage, portaStorage);
-		    System.out.println("O cliente se conectou ao servidor!"); 
-		    
-		    //monta os dados a ser enviado ao storage (Arquivo e a opção de remover)
-		    bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
-	        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-			ObjectOutputStream ous;
-			ous = new ObjectOutputStream(bao);
-			ous.writeInt(Constantes.STORAGE_REMOVE_ARQUIVO);
-			ous.writeObject(arquivo);
-	       
-			System.out.println("Removendo arquivo...");
-	        bufferSaida.write(bao.toByteArray());
-	        bufferSaida.flush();
-	        bufferSaida.close();
-		    cliente.close();
-		} catch (Exception e) {
-			System.out.println("Erro ao tentar remover o arquivo!");
-			e.printStackTrace();
-			return false;
-		} 
-		return true;
-	}
-	
-
 	/**Método que serializa os dados do arquivo a ser enviado ao storage.
 	 * Setá a opção de salvar arquivo para o storage.
 	 * 

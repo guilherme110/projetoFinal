@@ -40,7 +40,7 @@ public class AplicacaoCliente {
 	 * KVProxy é o serviço de proxy de comunicação com os servidores de metadados.
 	 * 
 	 * @param idCliente id do cliente.
-	 * @param FNumeroStorages número de storages a serem utilizados.
+	 * @param FNumeroStorages (2 * FNumeroStorages + 1) número de storages a serem utilizados.
 	 */	
 	public static void criaCliente(String idCliente, int FNumeroStorages) {
 		cliente = new Cliente();
@@ -49,7 +49,7 @@ public class AplicacaoCliente {
 		cliente.setNomeCliente(idCliente);
 		cliente.setDiretorioClienteAtual(new ArrayList<String>());
 		cliente.getDiretorioClienteAtual().add("home");
-		cliente.setFNumeroStorages(FNumeroStorages);
+		cliente.setFNumeroStorages(2 * FNumeroStorages + 1);
 		
 		try {
 			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");

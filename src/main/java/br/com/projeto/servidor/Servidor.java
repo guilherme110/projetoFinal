@@ -92,7 +92,7 @@ public class Servidor extends DefaultSingleRecoverable {
 			case Constantes.APAGA_ARQUIVO:
 				resposta = opcaoRemoveArquivo(dados);
 				break;
-			case Constantes.STORAGE_ENVIA_DADOS:
+			case Constantes.STORAGE_CADASTRO_TABELASTORAGE:
 				resposta = servidorServico.salvaStorage(dados, tabelaStorage);
 				break;
 			default:
@@ -224,7 +224,7 @@ public class Servidor extends DefaultSingleRecoverable {
 		}
 		
 		servidorServico.buscaListaMelhorStorage(listaStorages, numeroStorages, novoArquivo, tabelaStorage);
-		if (CollectionUtils.isNotEmpty(listaStorages)) {
+		if ((CollectionUtils.isNotEmpty(listaStorages)) && (numeroStorages == listaStorages.size())) {
 			System.out.println("Encontrado lista com os melhores storages, tamanho da lista: " + listaStorages.size());
 			if (servidorServico.salvaArquivo(novoArquivo, diretorioCliente, arvoreDiretorio)) {
 				servidorServico.addArquivoTabelaStorage(novoArquivo, listaStorages, tabelaStorage);	
@@ -233,8 +233,11 @@ public class Servidor extends DefaultSingleRecoverable {
 			} else {
 				System.out.println("Nome de arquivo existente nesse diretório!");
 			}
-		} else { 
+		} else if (listaStorages.size() != numeroStorages){
+			System.out.println("Número de storages disponível não atende ao cliente!");
+		} else {
 			System.out.println("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!");
+			listaStorages = null;
 		}
 
 		//monta os dados de saida

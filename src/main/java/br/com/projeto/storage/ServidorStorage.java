@@ -112,7 +112,7 @@ public class ServidorStorage {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
 			
-			dos.writeInt(Constantes.STORAGE_ENVIA_DADOS);
+			dos.writeInt(Constantes.STORAGE_CADASTRO_TABELASTORAGE);
 			
 			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(storage);
