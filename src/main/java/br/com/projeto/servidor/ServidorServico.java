@@ -307,4 +307,40 @@ public class ServidorServico {
 	    System.out.println("Storage: " + novoStorage.getNomeStorage() + " salvo com sucesso!");
 	    return saida.toByteArray();
 	}
+
+	/**Serviço que busca a lista de storages onde o arquivo está salvo.
+	 * Le o arquivo de entrada e varre sua lista de id de storage salvo.
+	 * Para cada idStorage, verifica o storage na tabela de storages e monta a lista de saida.
+	 * 
+	 * @param dados arquivo para verificar os storages onde está salvo
+	 * @param tabelaStorage 
+	 * @return listaStorages contem os storages onde o arquivo está salvo
+	 * @throws IOException
+	 */
+	public byte[] buscaStorages(ByteArrayInputStream dados,
+			Map<Integer, Storage> tabelaStorage) throws IOException {
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Storage storage = new Storage();
+		Arquivo arquivo = new Arquivo();
+				
+		ObjectInputStream objIn = new ObjectInputStream(dados);
+		try {
+			arquivo = (Arquivo) objIn.readObject();
+			for (int idStorage : arquivo.getListaIdStorage()) {
+				storage = tabelaStorage.get(idStorage);
+				listaStorages.add(storage);
+			}
+		} catch (ClassNotFoundException ex) {
+	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       return null;
+		}
+		  
+	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
+	    objOut.writeObject(listaStorages);
+	    objOut.close();
+	    
+	    System.out.println("Storages encontrados: " + listaStorages.size());
+	    return saida.toByteArray();
+	}
 }

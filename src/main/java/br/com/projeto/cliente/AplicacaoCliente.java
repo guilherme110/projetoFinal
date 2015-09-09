@@ -30,7 +30,7 @@ public class AplicacaoCliente {
 			System.out.println("Necessário passar o <process id>");
 			System.exit(-1);
 		}
-		criaCliente(args[0], Integer.parseInt(args[1]));
+		criaCliente(args[0], Integer.parseInt(args[1]), args[2]);
 		carregaTela();
 		opcoesCliente();
 	}
@@ -41,8 +41,9 @@ public class AplicacaoCliente {
 	 * 
 	 * @param idCliente id do cliente.
 	 * @param FNumeroStorages (2 * FNumeroStorages + 1) número de storages a serem utilizados.
+	 * @param localArmazenamento local de armazenamento de arquivos recebidos pelo storage
 	 */	
-	public static void criaCliente(String idCliente, int FNumeroStorages) {
+	public static void criaCliente(String idCliente, int FNumeroStorages, String localArmazenamento) {
 		cliente = new Cliente();
 		
 		cliente.setIdCliente(Integer.parseInt(idCliente));
@@ -50,6 +51,7 @@ public class AplicacaoCliente {
 		cliente.setDiretorioClienteAtual(new ArrayList<String>());
 		cliente.getDiretorioClienteAtual().add("home");
 		cliente.setFNumeroStorages(2 * FNumeroStorages + 1);
+		cliente.setLocalArmazenamento(localArmazenamento);
 		
 		try {
 			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");
@@ -70,6 +72,7 @@ public class AplicacaoCliente {
 		System.out.println("mk -> criar diretorio [nome do diretorio]");
 		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
 		System.out.println("rm -> remover arquivo [caminho do arquivo]");
+		System.out.println("la -> lê arquivo [nome do arquivo]");
 		System.out.println("ls -> listar arquivos e diretorios");
 		System.out.println("exit -> sair do programa");
 	}
@@ -117,6 +120,10 @@ public class AplicacaoCliente {
 			break;
 		case "rm":
 			opcaoRemoveArquivo(comando, leitor);
+			break;
+		case "la":
+			opcaoLeArquivo(comando, leitor);
+			break;
 		case "ls":
 			opcaoListaDados();
 			break;
@@ -242,6 +249,28 @@ public class AplicacaoCliente {
 		}
 		clienteServico.removeArquivo(nomeArquivo, cliente);
 	}
+	
+	/**Método de opção para buscar um arquivo do storage para o cliente.
+	 * Caso o nome do arquivo não seja informado, solicita o nome.
+	 * Por último chama o serviço para buscar o arquivo. 
+	 * 
+	 * @param dadosLeitura dados informado pelo cliente.
+	 * @param leitor de dados do cliente.
+	 */
+	private static void opcaoLeArquivo(String dadosLeitura, Scanner leitor) {
+		String nomeArquivo;
+		
+		try { 
+			nomeArquivo = dadosLeitura.split(" ")[1];
+			nomeArquivo = dadosLeitura.substring(dadosLeitura.indexOf(" ") + 1);
+		} catch (Exception e) {
+			System.out.print("Insira o nome do arquivo: ");
+			nomeArquivo = leitor.nextLine();
+		}
+		clienteServico.leArquivo(nomeArquivo, cliente);
+		
+	}
+
 	
 	/**Método de opção de lista os dados do diretório.
 	 * Chama o serviço de listar o diretório.

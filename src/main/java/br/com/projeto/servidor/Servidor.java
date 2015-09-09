@@ -132,6 +132,8 @@ public class Servidor extends DefaultSingleRecoverable {
 			case Constantes.LISTA_DADOS:
 				resposta = servidorServico.listaDados(dados, arvoreDiretorio);
 				break;
+			case Constantes.BUSCA_STORAGES_ARQUIVO:
+				resposta = servidorServico.buscaStorages(dados, tabelaStorage);
 			default:
 				break;
 			}

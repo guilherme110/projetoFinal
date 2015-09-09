@@ -115,6 +115,35 @@ public class MapDiretorio {
 		return listaStorages;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public List<Storage> buscaStorages(Arquivo arquivo) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		try {
+			out = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(out); 
+			
+			dos.writeInt(Constantes.BUSCA_STORAGES_ARQUIVO);
+			
+			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(arquivo);
+			out1.close();
+			
+			byte[] rep = this.getConexao().invokeUnordered(out.toByteArray());
+			ByteArrayInputStream in = new ByteArrayInputStream(rep);
+	        ObjectInputStream objIn = new ObjectInputStream(in);
+		    try {
+		    	listaStorages = (List<Storage>) objIn.readObject();
+		    } catch (ClassNotFoundException ex) {
+		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		    }
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			return null;
+		}
+		return listaStorages;
+	}
+	
 	/**Método que busca a lista de dados do diretório do cliente no servidor de metadados
 	 * Serializa o parametro diretorio do cliente para ser enviado
 	 * Chama o método inokeUnordered para enviar os parametros para o servidor de metadados

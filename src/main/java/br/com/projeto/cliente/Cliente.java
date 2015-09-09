@@ -15,6 +15,7 @@ public class Cliente {
 	private String       nomeCliente;
 	private List<String> diretorioClienteAtual;
 	private int			 FNumeroStorages;
+	private String		 localArmazenamento;
 	
 	public Cliente() {
 		
@@ -50,6 +51,14 @@ public class Cliente {
 
 	public void setFNumeroStorages(int fNumeroStorages) {
 		FNumeroStorages = fNumeroStorages;
+	}
+
+	public String getLocalArmazenamento() {
+		return localArmazenamento;
+	}
+
+	public void setLocalArmazenamento(String localArmazenamento) {
+		this.localArmazenamento = localArmazenamento;
 	}
 	
 }

@@ -3,6 +3,7 @@ package br.com.projeto.cliente;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -123,7 +124,7 @@ public class ClienteServico {
 		System.out.println(" ");
 	}
 
-	//FIXME: Implementar mecanismo de ROOLBACK
+	//FIXME: Implementar mecanismo de ROOLBACK e verificar se arquivo existe no diretorio antes de salvar
 	/**Serviço para salvar um no arquivo.
 	 * Cria um objeto do tipo arquivo e realiza algumas formatações para pegar a extensão do arquivo.
 	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
@@ -147,8 +148,8 @@ public class ClienteServico {
 				System.out.println("\nLendo dados do arquivo...");
 				byte[] bufferArquivo = serializarArquivo(arquivo, novoArquivo);
 				for (Storage storage : listaStorages) {
-					ComunicacaoClienteStorage comunicacaoClienteStorage = new ComunicacaoClienteStorage(storage, 
-							bufferArquivo, Constantes.STORAGE_SALVA_ARQUIVO);
+					Thread comunicacaoClienteStorage = new Thread (new ComunicacaoClienteStorage(storage, 
+							bufferArquivo, Constantes.STORAGE_SALVA_ARQUIVO));
 					comunicacaoClienteStorage.run();
 				}
 			} else {
@@ -180,8 +181,8 @@ public class ClienteServico {
 				listaStorages = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
 				if (CollectionUtils.isNotEmpty(listaStorages)) {
 					for (Storage storage : listaStorages) {
-						ComunicacaoClienteStorage comunicacaoClienteStorage = new ComunicacaoClienteStorage(storage, 
-								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO);
+						Thread comunicacaoClienteStorage = new Thread(new ComunicacaoClienteStorage(storage, 
+								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO));
 						comunicacaoClienteStorage.run();
 					}	
 				} else {
@@ -195,6 +196,109 @@ public class ClienteServico {
 		}			
 	}
 	
+	/**Serviço que lê um arquivo dos storages.
+	 * Primeiramente verifica se o arquivo solicitado existe no diretório.
+	 * Caso encontre o arquivo, busca a lista de storages que esse arquivo está salvo.
+	 * Em seguida dispara uma thread para cada storage da lista, enviando os 
+	 * dados do arquivo a ser lido e aguardando receber os dados do arquivo.
+	 * Aguarda todas as thread's serem finalizadas e chama o método que verifica a integridade 
+	 * dos dados enviados pelos Storages.
+	 * Caso o arquivo esteja integro, salvo o arquivo no diretório do cliente.
+	 * 
+	 * @param nomeArquivo nome do arquivo a ser lido.
+	 * @param cliente dados do cliente.
+	 */
+	public void leArquivo(String nomeArquivo, Cliente cliente) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Arquivo arquivo = new Arquivo();
+		Arquivo arquivoEncontrado = new Arquivo();
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
+		int count = 0;
+		
+		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
+		if (arquivo != null) {
+			try {
+				listaStorages = mapDiretorio.buscaStorages(arquivo);
+				if (CollectionUtils.isNotEmpty(listaStorages)) {
+					for (Storage storage : listaStorages) {
+						comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
+								arquivo, Constantes.STORAGE_BUSCA_ARQUIVO);
+						thread[count] = new Thread(comunicacaoClienteStorage[count]);
+						thread[count].start();
+						
+						count++;
+					}
+					
+					//aguarda todas as Thread's serem finalizadas.
+					for (int i = 0; i < count; i++) {
+						thread[i].join();
+					}
+					arquivoEncontrado = verificaIntegridadeDados(comunicacaoClienteStorage);
+					if (arquivoEncontrado != null)
+						if (salvaArquivoCliente(cliente.getLocalArmazenamento(), arquivoEncontrado))
+							System.out.println("Arquivo: " + arquivo.getNomeArquivo() + "salvo com sucesso!");
+						else
+							System.out.println("Erro ao salvar o arquivo no diretorio do cliente!");
+					else
+						System.out.println("Arquivo danificado ou modificado pelo storage!");
+					
+				} else {
+					System.out.println("Erro ao verificar os storages com o arquivo!");
+				}
+			} catch (Exception e) {
+				System.out.println("Erro ao ler o arquivo nos storages!");
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("Arquivo não existe nesse diretório!");
+		}			
+	}
+	
+	//FIXME: Verificar como validar a integridade dos dados recebido
+	/**Método que verifica a integridade dos dados transferido pelos storages e
+	 * retorna o arquivo encontrado.
+	 * Caso o arquivo não esteja integro, retorna null.
+	 * 
+	 * @param comunicacaoClienteStorage threads com dados dos arquivos recebidos pelos storages.
+	 * @param arquivoEncontrado objeto do arquivo encontrado.
+	 * @return arquivo recebido pelos storages.
+	 */
+	private Arquivo verificaIntegridadeDados(ComunicacaoClienteStorage[] comunicacaoClienteStorage) {
+		Arquivo arquivoEncontrado = new Arquivo();
+		
+		for (ComunicacaoClienteStorage comunicacao : comunicacaoClienteStorage) {
+			arquivoEncontrado = comunicacao.getArquivo();
+		}
+		
+		return arquivoEncontrado;
+	}
+	
+	/**Método que salva o arquivo no diretório do cliente.
+	 * 
+	 * @param localArmazenamento local de armazenamento de arquivos do cliente.
+	 * @param arquivo dados do arquivo a ser salvo.
+	 * @return Boolean de status da solicitação.
+	 */
+	private boolean salvaArquivoCliente(String localArmazenamento,
+			Arquivo arquivo) {
+
+		String nomeArquivoSaida = localArmazenamento + arquivo.getNomeArquivo();
+        
+        FileOutputStream bufferArquivoSaida = null;
+        try {
+        	bufferArquivoSaida = new FileOutputStream(nomeArquivoSaida);
+        	bufferArquivoSaida.write(arquivo.getDadosArquivo());
+        	bufferArquivoSaida.close();
+        } catch (IOException e) {
+			e.printStackTrace();
+			return false;
+        }
+		return true;
+	}
+
+
+
 	/**Método que serializa os dados do arquivo a ser enviado ao storage.
 	 * Setá a opção de salvar arquivo para o storage.
 	 * 
@@ -226,4 +330,5 @@ public class ClienteServico {
 	    }
 	    return null;
 	}
+
 }
