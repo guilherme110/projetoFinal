@@ -1,11 +1,8 @@
 package br.com.projeto.cliente;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,7 +126,7 @@ public class ClienteServico {
 	 * Cria um objeto do tipo arquivo e realiza algumas formatações para pegar a extensão do arquivo.
 	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
 	 * Caso a lista não seja vazia, serializa o arquivo a ser enviado e varre a lista
-	 * para enviar o arquivo para cada storage da lista.
+	 * disparando uma thread para cada storage que o arquivo vai ser salvo.
 	 *
 	 * @param arquivo físico a ser enviado
 	 * @param cliente dados do cliente atual
@@ -138,20 +135,27 @@ public class ClienteServico {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo novoArquivo = new Arquivo();
 		String tipoArquivo = arquivo.getName().substring((arquivo.getName().lastIndexOf(".") + 1));
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
+		int count = 0;
 		
 		novoArquivo.setNomeArquivo(arquivo.getName());
 		novoArquivo.setTamanhoArquivo(arquivo.length());
 		novoArquivo.setTipoArquivo(tipoArquivo);
 		try {
 			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
-			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getFNumeroStorages())) {
-				System.out.println("\nLendo dados do arquivo...");
-				byte[] bufferArquivo = serializarArquivo(arquivo, novoArquivo);
+			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getFNumeroStorages())) {		
 				for (Storage storage : listaStorages) {
-					Thread comunicacaoClienteStorage = new Thread (new ComunicacaoClienteStorage(storage, 
-							bufferArquivo, Constantes.STORAGE_SALVA_ARQUIVO));
-					comunicacaoClienteStorage.run();
+					comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
+							arquivo, novoArquivo, Constantes.STORAGE_SALVA_ARQUIVO);
+					thread[count] = new Thread(comunicacaoClienteStorage[count]);
+					thread[count].start();
+					count++;
 				}
+				
+				//aguarda todas as Thread's serem finalizadas.
+				for (int i = 0; i < count; i++)
+					thread[i].join();
 			} else {
 				System.out.println("Erro ao salvar o arquivo nos storages!");
 			}
@@ -165,7 +169,7 @@ public class ClienteServico {
 	 * Chama o método de busca de arquivo nos servidores.
 	 * Caso o arquivo exista nos servidores, chama o método para remover o arquivo nos servidores e
 	 * esse método retorna uma lista com os storages a serem atualizados.
-	 * Por último varre a lista e chama o método de remover o arquivo de cada storage.
+	 * Por último varre a lista e dispara um thread para remover o arquivo de cada storage.
 	 * 
 	 * @param nomeArquivo nome do arquivo a ser removido
 	 * @param cliente dados do cliente
@@ -174,6 +178,9 @@ public class ClienteServico {
 	public void removeArquivo(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
+		int count = 0;
 		
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
 		if (arquivo != null) {
@@ -181,10 +188,16 @@ public class ClienteServico {
 				listaStorages = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
 				if (CollectionUtils.isNotEmpty(listaStorages)) {
 					for (Storage storage : listaStorages) {
-						Thread comunicacaoClienteStorage = new Thread(new ComunicacaoClienteStorage(storage, 
-								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO));
-						comunicacaoClienteStorage.run();
+						comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
+								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO);
+						thread[count] = new Thread(comunicacaoClienteStorage[count]);
+						thread[count].start();
+						count++;
 					}	
+					
+					//aguarda todas as Thread's serem finalizadas.
+					for (int i = 0; i < count; i++)
+						thread[i].join();
 				} else {
 					System.out.println("Erro ao verificar os storages com o arquivo!");
 				}
@@ -296,39 +309,4 @@ public class ClienteServico {
         }
 		return true;
 	}
-
-
-
-	/**Método que serializa os dados do arquivo a ser enviado ao storage.
-	 * Setá a opção de salvar arquivo para o storage.
-	 * 
-	 * @param arquivo dados físico do arquivo a ser enviado
-	 * @param novoArquivo objeto do arquivo a ser enviado
-	 * @return bytes do arquivo serializado a ser enviado
-	 */
-	private byte[] serializarArquivo(File arquivo, Arquivo novoArquivo){
-		FileInputStream fis;
-		
-        try {
-           //le os dados do arquivo, armazena os dados do arquivo no objeto
-    	   byte[] conteudoByte = new byte[(int) arquivo.length()];
-           fis = new FileInputStream(arquivo);
-           fis.read(conteudoByte);
-           fis.close();
-           novoArquivo.setDadosArquivo(conteudoByte);
-           
-           //converte em byte o objeto arquivo para ser enviado
-           ByteArrayOutputStream bao = new ByteArrayOutputStream();
-		   ObjectOutputStream ous;
-		   ous = new ObjectOutputStream(bao);
-		   ous.writeInt(Constantes.STORAGE_SALVA_ARQUIVO);
-		   ous.writeObject(novoArquivo);
-		
-		   return bao.toByteArray();
-	    } catch (IOException e) {
-	       e.printStackTrace();
-	    }
-	    return null;
-	}
-
 }

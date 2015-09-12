@@ -4,12 +4,17 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+
+import org.apache.commons.io.IOUtils;
 
 import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.storage.Storage;
@@ -24,7 +29,7 @@ import br.com.projeto.utils.Constantes;
 public class ComunicacaoClienteStorage implements Runnable{
 	private Storage storage;
 	private Arquivo arquivo;
-	private byte[]  bufferArquivo;
+	private File	arquivoFisico;
 	private int		operacao;
 	private volatile int value;
 	
@@ -34,11 +39,13 @@ public class ComunicacaoClienteStorage implements Runnable{
 		this.operacao = operacaoCliente;
 	}
 	
-	public ComunicacaoClienteStorage(Storage storageDestino, byte[] bufferNovoArquivo, int operacaoCliente) {
+	public ComunicacaoClienteStorage(Storage storageDestino, File arquivoFisico, Arquivo dadosArquivo, int operacaoCliente) {
 		this.storage = storageDestino;
-		this.bufferArquivo = bufferNovoArquivo;
+		this.arquivoFisico = arquivoFisico;
+		this.arquivo = dadosArquivo;
 		this.operacao = operacaoCliente;
 	}
+	
 	
 	public ComunicacaoClienteStorage() {
 	
@@ -48,7 +55,7 @@ public class ComunicacaoClienteStorage implements Runnable{
 	public void run() {
 		switch (this.operacao) {
 		case Constantes.STORAGE_SALVA_ARQUIVO:
-			if(enviaArquivoStorage(this.storage, this.bufferArquivo))
+			if(enviaArquivoStorage(this.storage, this.arquivoFisico, this.arquivo))
 				System.out.println("Arquivo enviado com sucesso!");
 			else
 				System.out.println("Erro ao enviar o arquivo para o storage: " + this.storage.getNomeStorage());
@@ -73,30 +80,39 @@ public class ComunicacaoClienteStorage implements Runnable{
 	/**Serviço que envia um novo arquivo para o storage.
 	 * Primeiro cria a comunicação socket com o storage, com o host e porta
 	 * informado pelos dados do storage.
-	 * Chama um método para serializar os dados a ser enviado ao storage e envia os dados ao storage..
+	 * Utiliza a bibliote Apache IOUtils para enviar o arquivo aos storages.
 	 * 
 	 * @param storage dados do storage
-	 * @param arquivo dados físico do arquivo a ser salvo
+	 * @param arquivoFisico dados físico do arquivo a ser salvo
 	 * @param novoArquivo objeto do arquivo a ser enviado para o storage
 	 * @return Boolean se ocorreu tudo certo na transação
 	 */
-	private boolean enviaArquivoStorage(Storage storage, byte[] bufferArquivo) {
+	private boolean enviaArquivoStorage(Storage storage, File arquivoFisico, Arquivo arquivo) {
 		String hostStorage = storage.getEnderecoHost();
 		String nomeStorage = storage.getNomeStorage();
 		int portaStorage = storage.getPortaConexao();
 		
 		Socket cliente = null;
-		BufferedOutputStream bufferSaida = null;
 		try {
 			cliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao storage: " + nomeStorage); 
-		   
-		    System.out.println("Enviando arquivo...");
-	        bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
-	        bufferSaida.write(bufferArquivo);
-	        bufferSaida.flush();
-	        bufferSaida.close();
-		    cliente.close();
+		    
+			DataOutputStream dos = new DataOutputStream(cliente.getOutputStream());
+			ObjectOutputStream outObj = new ObjectOutputStream(cliente.getOutputStream());
+			
+			dos.writeInt(Constantes.STORAGE_SALVA_ARQUIVO);
+			outObj.writeObject(arquivo);
+			
+			System.out.println("Enviando arquivo para o storage: " + nomeStorage);
+			FileInputStream fis = new FileInputStream(arquivoFisico);
+			if (arquivoFisico.length() < 1000000000)
+				IOUtils.copy(fis, dos);
+			else
+				IOUtils.copyLarge(fis, dos);
+			
+			fis.close();
+			dos.close();
+			cliente.close();
 		} catch (Exception e) {
 			System.out.println("Erro no envio do arquivo!");
 			e.printStackTrace();
@@ -121,24 +137,21 @@ public class ComunicacaoClienteStorage implements Runnable{
 		int portaStorage = storage.getPortaConexao();
 		
 		Socket cliente = null;
-		BufferedOutputStream bufferSaida = null;
 		try {
 			cliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao storage: " + nomeStorage); 
 		    
 		    //monta os dados a ser enviado ao storage (Arquivo e a opção de remover)
-		    bufferSaida = new BufferedOutputStream(cliente.getOutputStream());
-	        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-			ObjectOutputStream ous;
-			ous = new ObjectOutputStream(bao);
-			ous.writeInt(Constantes.STORAGE_REMOVE_ARQUIVO);
-			ous.writeObject(arquivo);
-	       
+		    DataOutputStream dos = new DataOutputStream(cliente.getOutputStream());
+			ObjectOutputStream outObj = new ObjectOutputStream(cliente.getOutputStream());
+			
 			System.out.println("Removendo arquivo...");
-	        bufferSaida.write(bao.toByteArray());
-	        bufferSaida.flush();
-	        bufferSaida.close();
-		    cliente.close();
+			dos.writeInt(Constantes.STORAGE_REMOVE_ARQUIVO);
+			outObj.writeObject(arquivo);
+		   
+			outObj.close();
+	        dos.close();
+	        cliente.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -248,5 +261,13 @@ public class ComunicacaoClienteStorage implements Runnable{
 
 	public void setArquivo(Arquivo arquivo) {
 		this.arquivo = arquivo;
+	}
+	
+	public File getArquivoFisico() {
+		return arquivoFisico;
+	}
+
+	public void setArquivoFisico(File arquivoFisico) {
+		this.arquivoFisico = arquivoFisico;
 	}
 }

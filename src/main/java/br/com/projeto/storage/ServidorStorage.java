@@ -149,10 +149,9 @@ public class ServidorStorage {
 			System.out.println("Novo cliente conectado, cliente: " + cliente.getInetAddress().getHostAddress());
 			
 			//Dispara thread para ler os dados do cliente.
-			Thread trataCliente = new Thread (new TrataCliente(cliente.getReceiveBufferSize(), 
-					cliente.getInputStream(), cliente.getOutputStream(), storage));
-			trataCliente.run();
-			
+			TrataCliente trataCliente = new TrataCliente(cliente.getInputStream(), cliente.getOutputStream(), storage);
+			Thread thread = new Thread(trataCliente);
+			thread.start();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
