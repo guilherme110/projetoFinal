@@ -133,9 +133,7 @@ public class ServidorStorage {
 
 	/**Método que aguarda novas requisições dos clientes.
 	 * Primeiro cria-se um novo socket e aguarda novas requisições nesse socket.
-	 * Em seguida trata os dados da requisição do cliente e verifica qual operação o
-	 * cliente deseja realizar.
-	 * Por último realiza a operação do cliente.
+	 * Em seguida cria-se uma thread para tratar a requisição do cliente.
 	 * 
 	 * @return Boolean com o status da requisição do cliente.
 	 */

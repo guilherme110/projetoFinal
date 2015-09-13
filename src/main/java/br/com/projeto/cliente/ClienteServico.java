@@ -1,12 +1,12 @@
 package br.com.projeto.cliente;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import bftsmart.tom.ServiceProxy;
@@ -189,7 +189,7 @@ public class ClienteServico {
 				if (CollectionUtils.isNotEmpty(listaStorages)) {
 					for (Storage storage : listaStorages) {
 						comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
-								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO);
+								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO, cliente.getLocalArmazenamento());
 						thread[count] = new Thread(comunicacaoClienteStorage[count]);
 						thread[count].start();
 						count++;
@@ -215,16 +215,16 @@ public class ClienteServico {
 	 * Em seguida dispara uma thread para cada storage da lista, enviando os 
 	 * dados do arquivo a ser lido e aguardando receber os dados do arquivo.
 	 * Aguarda todas as thread's serem finalizadas e chama o método que verifica a integridade 
-	 * dos dados enviados pelos Storages.
-	 * Caso o arquivo esteja integro, salvo o arquivo no diretório do cliente.
+	 * dos arquivos enviados pelos storages.
+	 * Caso o arquivo esteja integro, salvo o arquivo no diretório do cliente no próprio método 
+	 * que verifica a integridade do arquivo.
 	 * 
 	 * @param nomeArquivo nome do arquivo a ser lido.
 	 * @param cliente dados do cliente.
 	 */
-	public void leArquivo(String nomeArquivo, Cliente cliente) {
+	public void baixaArquivo(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
-		Arquivo arquivoEncontrado = new Arquivo();
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
 		int count = 0;
@@ -234,12 +234,16 @@ public class ClienteServico {
 			try {
 				listaStorages = mapDiretorio.buscaStorages(arquivo);
 				if (CollectionUtils.isNotEmpty(listaStorages)) {
+					ArrayList<String> listaLocalNovoArquivo = new ArrayList<String>();
 					for (Storage storage : listaStorages) {
+						String localNovoArquivo = cliente.getLocalArmazenamento() + 
+								storage.getIdStorage() + arquivo.getNomeArquivo();
 						comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
-								arquivo, Constantes.STORAGE_BUSCA_ARQUIVO);
+								arquivo, Constantes.STORAGE_BUSCA_ARQUIVO, cliente.getLocalArmazenamento());
 						thread[count] = new Thread(comunicacaoClienteStorage[count]);
-						thread[count].start();
 						
+						thread[count].start();
+						listaLocalNovoArquivo.add(localNovoArquivo);
 						count++;
 					}
 					
@@ -247,12 +251,10 @@ public class ClienteServico {
 					for (int i = 0; i < count; i++) {
 						thread[i].join();
 					}
-					arquivoEncontrado = verificaIntegridadeDados(comunicacaoClienteStorage);
-					if (arquivoEncontrado != null)
-						if (salvaArquivoCliente(cliente.getLocalArmazenamento(), arquivoEncontrado))
-							System.out.println("Arquivo: " + arquivo.getNomeArquivo() + "salvo com sucesso!");
-						else
-							System.out.println("Erro ao salvar o arquivo no diretorio do cliente!");
+					
+					System.out.println("Verificando integridade do arquivo...");
+					if (verificaIntegridadeDados(arquivo, listaLocalNovoArquivo, cliente.getLocalArmazenamento()))
+						System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
 					else
 						System.out.println("Arquivo danificado ou modificado pelo storage!");
 					
@@ -268,45 +270,55 @@ public class ClienteServico {
 		}			
 	}
 	
-	//FIXME: Verificar como validar a integridade dos dados recebido
-	/**Método que verifica a integridade dos dados transferido pelos storages e
-	 * retorna o arquivo encontrado.
-	 * Caso o arquivo não esteja integro, retorna null.
+	/**Método que verifica a integridade do arquivo.
+	 * Varre a lista de local do novo arquivo, para pegar cada arquivo que foi transferido do storage.
+	 * Compara em dois em dois os arquivos recebidos do storage, com o auxilio do biblioteca IOUtils.
+	 * Caso os dois arquivos sejam iguais, deleta um arquivo e utiliza o outro para comparar com o
+	 * próximo arquivo.
+	 * No fim renomeia o último arquivo restante para o nome do arquivo baixado.
 	 * 
-	 * @param comunicacaoClienteStorage threads com dados dos arquivos recebidos pelos storages.
-	 * @param arquivoEncontrado objeto do arquivo encontrado.
-	 * @return arquivo recebido pelos storages.
+	 * @param arquivo dados do arquivo a ser verificado.
+	 * @param listaLocalNovoArquivo lista com o local dos arquivos baixados dos storages.
+	 * @param localArmazenamento local default de armazenamento do cliente
+	 * @return boolean com status da verificação.
 	 */
-	private Arquivo verificaIntegridadeDados(ComunicacaoClienteStorage[] comunicacaoClienteStorage) {
-		Arquivo arquivoEncontrado = new Arquivo();
+	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
+			String localArmazenamento) {
+		boolean arquivosIntegros = true;
+		int count = 0;
+		File arquivoFisico = null;
 		
-		for (ComunicacaoClienteStorage comunicacao : comunicacaoClienteStorage) {
-			arquivoEncontrado = comunicacao.getArquivo();
-		}
-		
-		return arquivoEncontrado;
-	}
-	
-	/**Método que salva o arquivo no diretório do cliente.
-	 * 
-	 * @param localArmazenamento local de armazenamento de arquivos do cliente.
-	 * @param arquivo dados do arquivo a ser salvo.
-	 * @return Boolean de status da solicitação.
-	 */
-	private boolean salvaArquivoCliente(String localArmazenamento,
-			Arquivo arquivo) {
-
-		String nomeArquivoSaida = localArmazenamento + arquivo.getNomeArquivo();
-        
-        FileOutputStream bufferArquivoSaida = null;
-        try {
-        	bufferArquivoSaida = new FileOutputStream(nomeArquivoSaida);
-        	bufferArquivoSaida.write(arquivo.getDadosArquivo());
-        	bufferArquivoSaida.close();
-        } catch (IOException e) {
+		try {
+			while ((count < listaLocalNovoArquivo.size() - 1) && (arquivosIntegros = true)) {
+				String arquivoAux1 = listaLocalNovoArquivo.get(count);
+				String arquivoAux2 = listaLocalNovoArquivo.get(count + 1);
+				FileInputStream fis1 = new FileInputStream(arquivoAux1);
+				FileInputStream fis2 = new FileInputStream(arquivoAux2);
+				arquivoFisico = new File(arquivoAux1);
+				
+				if (!IOUtils.contentEquals(fis1, fis2))
+					arquivosIntegros = false;
+			
+				if(arquivoFisico.exists()) {
+					arquivoFisico.delete();
+					arquivoFisico = new File(arquivoAux2);
+				}
+				
+				fis1.close();
+				fis2.close();
+				count++;
+			}
+			
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
-        }
-		return true;
+		}
+			
+		if (arquivoFisico.exists()) {
+			File novoNome = new File(localArmazenamento + arquivo.getNomeArquivo());
+			arquivoFisico.renameTo(novoNome);
+		}
+		return arquivosIntegros;
 	}
 }

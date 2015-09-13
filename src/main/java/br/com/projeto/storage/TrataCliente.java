@@ -1,15 +1,13 @@
 package br.com.projeto.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
@@ -38,7 +36,7 @@ public class TrataCliente implements Runnable {
 	/**Método principal da thread
 	 * Primeiro le os dados enviados pelo cliente e verifica a opção selecionada
 	 * pelo cliente.
-	 * De acordo com a operação selecionando um método para ser realizado.
+	 * De acordo com a operação selecionando pelo cliente, um método é realizado.
 	 * 
 	 */
 	public void run() {
@@ -47,6 +45,7 @@ public class TrataCliente implements Runnable {
         
 		try {
 		    DataInputStream dis = new DataInputStream(this.canalClienteReceberDados);
+		    DataOutputStream dos = new DataOutputStream(this.canalClienteEnviarDados);
 		    ObjectInputStream objIn = new ObjectInputStream(this.canalClienteReceberDados);
 			operacao = dis.readInt();
         	arquivo = (Arquivo) objIn.readObject();
@@ -66,18 +65,10 @@ public class TrataCliente implements Runnable {
 					System.out.println("Erro ao tentar remover o arquivo: " + arquivo.getNomeArquivo());
 				break;
 			case Constantes.STORAGE_BUSCA_ARQUIVO:
-				String localArquivo = storage.getLocalArmazenamento() + arquivo.getNomeArquivo();
-				File arquivoEncontrado = new File(localArquivo);
-				
-				if (arquivoEncontrado.exists()) {
-					System.out.println("Arquivo encontrado, enviando arquivo:  " + arquivo.getNomeArquivo());
-					if(enviaArquivoCliente(arquivoEncontrado, arquivo))
-						System.out.println("Arquivo " + arquivo.getNomeArquivo() + " enviado com sucesso!");
-					else
-						System.out.println("Erro ao tentar enviar o arquivo: " + arquivo.getNomeArquivo());
-				} else {
-					System.out.println("Arquivo não encontrado, dados do arquivo: " + localArquivo);
-				}
+				if(enviaArquivoCliente(dos, arquivo, storage.getLocalArmazenamento()))
+					System.out.println("Arquivo " + arquivo.getNomeArquivo() + " enviado com sucesso!");
+				else
+					System.out.println("Erro ao tentar enviar o arquivo: " + arquivo.getNomeArquivo());
 				break;
 			default:
 				System.out.println("Opção inválida do cliente!");
@@ -96,7 +87,7 @@ public class TrataCliente implements Runnable {
 	}
 
 	/**Método que cria o arquivo no local de armazenamento do storage.
-	 * Primeiro verifica o local do novo arquivo e em seguida.
+	 * Primeiro verifica o local do novo arquivo.
 	 * Em seguida utiliza a biblioteca Apache IOUtils para copiar o arquivo.
 	 * 
 	 * @param dis
@@ -147,55 +138,39 @@ public class TrataCliente implements Runnable {
         
 	}
 	
-	/**Método que envia dados ao cliente.
+	/**Método que envia dados para o cliente.
+	 * Primeiro verifica o local salvo do arquivo.
+	 * Caso o arquivo não exista retorna false.
+	 * Caso encontre o arquivo, envia o arquivo para o cliente
+	 * utilizando a biblioteca Apache IOUtil.
 	 * 
-	 * @param arquivoEncontrado dados do arquivo físico a ser enviado.
-	 * @param arquivo dados do objeto arquivo a ser enviado.
+	 * @param arquivo dados do arquivo a ser enviado.
+	 * @param localArmazenamento local do arquivo.
 	 * @return Boolean com status da solicitação.
 	 */
-	private boolean enviaArquivoCliente(File arquivoEncontrado, Arquivo arquivo) {
-		byte[] bufferArquivo = serializarArquivo(arquivoEncontrado, arquivo);
-		BufferedOutputStream bufferSaida = null;
+	private boolean enviaArquivoCliente(DataOutputStream dos, Arquivo arquivo, String localArmazenamento) {
+		String localArquivo = localArmazenamento + arquivo.getNomeArquivo();
+		File arquivoFisico = new File(localArquivo);
+		
+		if (!arquivoFisico.exists()) {
+			System.out.println("Arquivo " + arquivo.getNomeArquivo() + "não encontrado!");
+			return false;
+		}
 		
 		try {
-			bufferSaida = new BufferedOutputStream(this.canalClienteEnviarDados);
-	        bufferSaida.write(bufferArquivo);
-	        bufferSaida.flush();
-	        bufferSaida.close();
+			FileInputStream fis = new FileInputStream(arquivoFisico);
+			
+			if (arquivoFisico.length() < 2000000000)
+				IOUtils.copy(fis, dos);
+			else
+				IOUtils.copyLarge(fis, dos);
+			
+			fis.close();
+			dos.close();
 		}catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 		return true;
-	}
-
-	/**Método que serializa os dados do arquivo a ser enviado ao cliente.
-	 * 
-	 * @param arquivo dados físico do arquivo a ser enviado
-	 * @param novoArquivo objeto do arquivo a ser enviado
-	 * @return bytes do arquivo serializado a ser enviado
-	 */
-	private byte[] serializarArquivo(File arquivo, Arquivo novoArquivo){
-		FileInputStream fis;
-		
-        try {
-           //le os dados do arquivo, armazena os dados do arquivo no objeto
-    	   byte[] conteudoByte = new byte[(int) arquivo.length()];
-           fis = new FileInputStream(arquivo);
-           fis.read(conteudoByte);
-           fis.close();
-           novoArquivo.setDadosArquivo(conteudoByte);
-           
-           //converte em byte o objeto arquivo para ser enviado
-           ByteArrayOutputStream bao = new ByteArrayOutputStream();
-		   ObjectOutputStream ous;
-		   ous = new ObjectOutputStream(bao);
-		   ous.writeObject(novoArquivo);
-		
-		   return bao.toByteArray();
-	    } catch (IOException e) {
-	       e.printStackTrace();
-	    }
-	    return null;
 	}
 }
