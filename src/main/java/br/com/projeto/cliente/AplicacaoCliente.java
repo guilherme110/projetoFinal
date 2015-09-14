@@ -70,6 +70,7 @@ public class AplicacaoCliente {
 		System.out.println(" ---------- Lista de comandos do sistema ----------");
 		System.out.println("cd -> movimentar entre as pastas [nome da pasta]");
 		System.out.println("mk -> criar diretorio [nome do diretorio]");
+		System.out.println("rmd -> criar diretorio [nome do diretorio]");
 		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
 		System.out.println("rm -> remover arquivo [caminho do arquivo]");
 		System.out.println("la -> lê arquivo [nome do arquivo]");
@@ -114,6 +115,9 @@ public class AplicacaoCliente {
 			break;
 		case "mk":
 			opcaoCriaDiretorio(comando, leitor);
+			break;
+		case "rmd":
+			opcaoRemoveDiretorio(comando, leitor);
 			break;
 		case "sv":
 			opcaoSalvaArquivo(comando, leitor);
@@ -195,6 +199,31 @@ public class AplicacaoCliente {
 		}
 		clienteServico.criaDiretorio(nomeDiretorio, cliente);
 	}
+	
+	
+	
+	
+	/**Método de opcao para remover um novo diretorio.
+	 * Caso o nome do diretorio não seja informado solicita o nome dele.
+	 * Por último chama o serviço de remover diretorio.
+	 * 
+	 * @param dadosLeitura dados informado pelo cliente.
+	 * @param leitor de dados do cliente.
+	 */
+	private static void opcaoRemoveDiretorio(String dadosLeitura, Scanner leitor) {
+		String nomeDiretorio;
+		
+		try {
+			nomeDiretorio = dadosLeitura.split(" ")[1];
+			nomeDiretorio = dadosLeitura.substring(dadosLeitura.indexOf(" ") + 1);
+		} catch (Exception e) {
+			System.out.print("Insira o nome do diretorio: ");
+			nomeDiretorio = leitor.nextLine();
+		}
+		clienteServico.removeDiretorio(nomeDiretorio, cliente);
+	}
+	
+	
 
 	/**Método da opcao de salvar um arquivo.
 	 * Caso o caminho para o arquivo não seja informado, solicita o nome dele.

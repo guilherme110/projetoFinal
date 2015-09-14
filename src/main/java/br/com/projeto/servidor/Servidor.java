@@ -86,6 +86,9 @@ public class Servidor extends DefaultSingleRecoverable {
 			case Constantes.CRIA_DIRETORIO:
 				resposta = servidorServico.criaDiretorio(dados, arvoreDiretorio);
 				break;
+			case Constantes.REMOVE_DIRETORIO:
+				resposta = servidorServico.removeDiretorio(dados, arvoreDiretorio);
+				break;	
 			case Constantes.SALVA_ARQUIVO:
 				resposta = opcaoSalvaArquivo(dados);
 				break;	

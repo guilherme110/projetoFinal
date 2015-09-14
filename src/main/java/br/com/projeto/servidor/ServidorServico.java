@@ -28,7 +28,7 @@ public class ServidorServico {
 	
 	}
 	
-	/**Serviço para criar um nov diretório.
+	/**Serviço para criar um novo diretório.
 	 * Primeiro le os dados do cliente e monta o objeto nome do novo diretorio e diretório do cliente.
 	 * Em seguida chama o metódo para adicionar o novo diretório na arvore de diretório.
 	 * Por último monta os dados de saida para o cliente.
@@ -39,8 +39,7 @@ public class ServidorServico {
 	 * @throws IOException.
 	 */
 	@SuppressWarnings("unchecked")
-	public byte[] criaDiretorio(ByteArrayInputStream dados, 
-			ArvoreDiretorio ArvoreDiretorio) throws IOException {
+	public byte[] criaDiretorio(ByteArrayInputStream dados, ArvoreDiretorio ArvoreDiretorio) throws IOException {
 		List<String> diretorioCliente = new ArrayList<String>();
 		String nomeNovoDiretorio = new DataInputStream(dados).readUTF();
 		ObjectInputStream objIn = new ObjectInputStream(dados);
@@ -58,6 +57,38 @@ public class ServidorServico {
 	    dados.close();
 	    
 	    System.out.println("Diretorio: " + nomeNovoDiretorio + "   Status: " + msgRetorno);
+	    return saida.toByteArray();
+	}
+	
+	/**Serviço para remover um  diretório.
+	 * Primeiro le os dados do cliente e monta o objeto nome do novo diretorio e diretório do cliente.
+	 * Em seguida chama o metódo para adicionar o novo diretório na arvore de diretório.
+	 * Por último monta os dados de saida para o cliente.
+	 * 
+	 * @param dados do cliente.
+	 * @param ArvoreDiretorio hierarquia de diretórios.
+	 * @return mensagem de retorno para o cliente.
+	 * @throws IOException.
+	 */
+	@SuppressWarnings("unchecked")
+	public byte[] removeDiretorio(ByteArrayInputStream dados, ArvoreDiretorio ArvoreDiretorio) throws IOException {
+		List<String> diretorioCliente = new ArrayList<String>();
+		String nomeDiretorio = new DataInputStream(dados).readUTF();
+		ObjectInputStream objIn = new ObjectInputStream(dados);
+	    try {
+	    	diretorioCliente = (List<String>) objIn.readObject();
+	    } catch (ClassNotFoundException ex) {
+	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+		
+	    String msgRetorno = ArvoreDiretorio.remDiretorio(diretorioCliente, nomeDiretorio);
+	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
+	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
+	    objOut.writeObject(msgRetorno);
+	    objOut.close();
+	    dados.close();
+	    
+	    System.out.println("Diretorio: " + nomeDiretorio + "   Status: " + msgRetorno);
 	    return saida.toByteArray();
 	}
 	

@@ -115,6 +115,35 @@ public class MapDiretorio {
 		return listaStorages;
 	}
 	
+	public String removeDiretorio(String nomeDiretorio, List<String> diretorioCliente) {
+		String msgSaida = "";
+		try {
+			out = new ByteArrayOutputStream();
+			
+			DataOutputStream dos = new DataOutputStream(out); 
+			dos.writeInt(Constantes.REMOVE_DIRETORIO); 
+			dos.writeUTF(nomeDiretorio);
+			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
+			out1.writeObject(diretorioCliente);
+			out1.close();
+			
+			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
+			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
+			ObjectInputStream in = new ObjectInputStream(bis) ;
+			msgSaida = (String) in.readObject();
+			in.close();
+		} catch (ClassNotFoundException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			msgSaida = "Erro na exclusão do diretorio!";
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
+			msgSaida = "Erro na exclusão do diretorio!";
+		}
+		return msgSaida;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public List<Storage> buscaStorages(Arquivo arquivo) {
 		List<Storage> listaStorages = new ArrayList<Storage>();

@@ -76,6 +76,55 @@ public class ArvoreDiretorio implements Serializable {
 		return msgSaida;
 	}
 	
+	/**Método que remove um novo diretório.
+	 * Primeiro cria um novo diretório.
+	 * Segundo verifica o diretório do cliente, para pegar o diretório atual do cliente.
+	 * Por último verifica se o nome do novo diretório já existe, caso não exista,
+	 * cria o novo diretório.
+	 * 
+	 * @param diretorioCliente lista com o diretório do cliente.
+	 * @param nomeNovoDiretorio
+	 * @return uma mensagem de status da solicitação.
+	 */
+	public String remDiretorio(List<String> diretorioCliente, String nomeDiretorio) {
+		boolean encontrou = false;
+		int indiceDiretorio;
+		String msgSaida = "";
+		//Diretorio novoDiretorio = new Diretorio();
+		//novoDiretorio.setNomeDiretorio(nomeNovoDiretorio);
+		//novoDiretorio.setTotalArquivos(0);
+		//Node<Object> nodePai = null;
+		Node<Object> nodeAux = home;
+		
+		//verifica o diretorio do cliente
+		List<Node<Object>> listaChildren = home.getChildren();
+		for (String aux : diretorioCliente) {
+			for (Node<Object> nodeFilho : listaChildren) {
+				Diretorio diretorioFilho = (Diretorio) nodeFilho.getData();
+				if (diretorioFilho.getNomeDiretorio().equalsIgnoreCase(aux)) {
+					nodeAux = nodeFilho;
+					encontrou = true;
+				}
+			}
+			if (encontrou == true) {
+				listaChildren = nodeAux.getChildren();
+				encontrou = false;
+			}
+		}
+			for (Node<Object> nodeFilho : listaChildren) {
+				Diretorio diretorioAux = (Diretorio) nodeFilho.getData();
+				if (diretorioAux.getNomeDiretorio().equalsIgnoreCase(nomeDiretorio)) {
+					indiceDiretorio = listaChildren.indexOf(nodeFilho);
+					nodeAux.removeChildAt(indiceDiretorio);
+					msgSaida = "Diretorio excluido com sucesso!";
+					return msgSaida;
+				}else{
+					msgSaida = "Diretorio informado não existe.";
+				}
+			}
+			return msgSaida;
+	}
+	
 	/**Método que adiciona um arquivo em um diretório.
 	 * Primeiro verifica o diretório atual do cliente.
 	 * Segundo verifica a lista de arquivos do diretório atual do cliente.

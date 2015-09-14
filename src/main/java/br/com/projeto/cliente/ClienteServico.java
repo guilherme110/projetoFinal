@@ -89,6 +89,31 @@ public class ClienteServico {
 		}
 		System.out.println(msgSaida);
 	}
+		
+	
+	/**Serviço que remove um diretório.
+	 * Valida o nome do novo diretório e chama o metódo de criação de diretório nos servidores.
+	 * 
+	 * @param nomeNovoDiretorio
+	 * @param cliente
+	 */
+	public void removeDiretorio(String nomeDiretorio, Cliente cliente) {
+		String msgSaida = "";
+		
+		try {
+			if (StringUtils.isEmpty(nomeDiretorio)) {
+				msgSaida = "Necessário informar um diretório";
+			} else if (nomeDiretorio.charAt(0) == '.' || nomeDiretorio.charAt(0) == ' ') {
+				msgSaida = "O nome da pasta não pode começar com '.' ou espaço!";
+			} else {
+				msgSaida = mapDiretorio.removeDiretorio(nomeDiretorio, cliente.getDiretorioClienteAtual());
+			}
+		} catch (Exception e) {
+			msgSaida = "Erro na exclusão do diretorio!";
+		}
+		System.out.println(msgSaida);
+	}
+	
 
 	/**Serviço que lista os dados do diretório do cliente.
 	 * Chama o metódo de lista de dados dos servidores.
