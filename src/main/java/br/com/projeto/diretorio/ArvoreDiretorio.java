@@ -90,10 +90,10 @@ public class ArvoreDiretorio implements Serializable {
 		boolean encontrou = false;
 		int indiceDiretorio;
 		String msgSaida = "";
-		//Diretorio novoDiretorio = new Diretorio();
-		//novoDiretorio.setNomeDiretorio(nomeNovoDiretorio);
-		//novoDiretorio.setTotalArquivos(0);
-		//Node<Object> nodePai = null;
+		ArrayList<List<String>> listaDados = new ArrayList<List<String>>();
+		List<String> listaArquivos = new ArrayList<String>();
+		List<String> listaDiretorios = new ArrayList<String>();
+		
 		Node<Object> nodeAux = home;
 		
 		//verifica o diretorio do cliente
@@ -114,6 +114,14 @@ public class ArvoreDiretorio implements Serializable {
 			for (Node<Object> nodeFilho : listaChildren) {
 				Diretorio diretorioAux = (Diretorio) nodeFilho.getData();
 				if (diretorioAux.getNomeDiretorio().equalsIgnoreCase(nomeDiretorio)) {
+					diretorioCliente.add(nomeDiretorio);
+					listaDados = listaDados(diretorioCliente);
+					listaArquivos = listaDados.get(0);
+					listaDiretorios = listaDados.get(1);
+					if(listaArquivos.size() > 0 || listaDiretorios.size() > 0){
+						msgSaida = "O diretorio informado possui arquivos ou outros diretorios por isso não pode ser excluído!";
+						return msgSaida;
+					}
 					indiceDiretorio = listaChildren.indexOf(nodeFilho);
 					nodeAux.removeChildAt(indiceDiretorio);
 					msgSaida = "Diretorio excluido com sucesso!";
