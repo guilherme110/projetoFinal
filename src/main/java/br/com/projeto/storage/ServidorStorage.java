@@ -133,9 +133,7 @@ public class ServidorStorage {
 
 	/**Método que aguarda novas requisições dos clientes.
 	 * Primeiro cria-se um novo socket e aguarda novas requisições nesse socket.
-	 * Em seguida trata os dados da requisição do cliente e verifica qual operação o
-	 * cliente deseja realizar.
-	 * Por último realiza a operação do cliente.
+	 * Em seguida cria-se uma thread para tratar a requisição do cliente.
 	 * 
 	 * @return Boolean com o status da requisição do cliente.
 	 */
@@ -149,10 +147,9 @@ public class ServidorStorage {
 			System.out.println("Novo cliente conectado, cliente: " + cliente.getInetAddress().getHostAddress());
 			
 			//Dispara thread para ler os dados do cliente.
-			Thread trataCliente = new Thread (new TrataCliente(cliente.getReceiveBufferSize(), 
-					cliente.getInputStream(), cliente.getOutputStream(), storage));
-			trataCliente.run();
-			
+			TrataCliente trataCliente = new TrataCliente(cliente.getInputStream(), cliente.getOutputStream(), storage);
+			Thread thread = new Thread(trataCliente);
+			thread.start();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;

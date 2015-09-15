@@ -126,7 +126,7 @@ public class AplicacaoCliente {
 			opcaoRemoveArquivo(comando, leitor);
 			break;
 		case "la":
-			opcaoLeArquivo(comando, leitor);
+			opcaoBaixaArquivo(comando, leitor);
 			break;
 		case "ls":
 			opcaoListaDados();
@@ -286,7 +286,7 @@ public class AplicacaoCliente {
 	 * @param dadosLeitura dados informado pelo cliente.
 	 * @param leitor de dados do cliente.
 	 */
-	private static void opcaoLeArquivo(String dadosLeitura, Scanner leitor) {
+	private static void opcaoBaixaArquivo(String dadosLeitura, Scanner leitor) {
 		String nomeArquivo;
 		
 		try { 
@@ -296,7 +296,7 @@ public class AplicacaoCliente {
 			System.out.print("Insira o nome do arquivo: ");
 			nomeArquivo = leitor.nextLine();
 		}
-		clienteServico.leArquivo(nomeArquivo, cliente);
+		clienteServico.baixaArquivo(nomeArquivo, cliente);
 		
 	}
 
