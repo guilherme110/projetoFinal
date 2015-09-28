@@ -92,7 +92,7 @@ public class MapDiretorio {
 			out = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(out); 
 			
-			dos.writeInt(Constantes.APAGA_ARQUIVO);
+			dos.writeInt(Constantes.REMOVE_ARQUIVO);
 			
 			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(arquivo);

@@ -92,7 +92,7 @@ public class Servidor extends DefaultSingleRecoverable {
 			case Constantes.SALVA_ARQUIVO:
 				resposta = opcaoSalvaArquivo(dados);
 				break;	
-			case Constantes.APAGA_ARQUIVO:
+			case Constantes.REMOVE_ARQUIVO:
 				resposta = opcaoRemoveArquivo(dados);
 				break;
 			case Constantes.STORAGE_CADASTRO_TABELASTORAGE:

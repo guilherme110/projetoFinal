@@ -11,17 +11,17 @@ public class Constantes {
 	public static final int CRIA_DIRETORIO     = 2;
 	public static final int LISTA_DADOS		   = 3;
 	public static final int MOVE_DIRETORIO     = 4;
-	public static final int REMOVE_DIRETORIO    = 14;
+	public static final int REMOVE_DIRETORIO   = 5;
 	
 	/*Opções para arquivos*/
-	public static final int SALVA_ARQUIVO 	       = 5;
-	public static final int APAGA_ARQUIVO	       = 6;
-	public static final int BUSCA_ARQUIVO		   = 7;
-	public static final int BUSCA_STORAGES_ARQUIVO = 8;
+	public static final int SALVA_ARQUIVO 	       = 10;
+	public static final int REMOVE_ARQUIVO	       = 11;
+	public static final int BUSCA_ARQUIVO		   = 12;
+	public static final int BUSCA_STORAGES_ARQUIVO = 13;
 	
 	/*Opções para storage*/
-	public static final int STORAGE_SALVA_ARQUIVO     	   = 10;
-	public static final int STORAGE_REMOVE_ARQUIVO	       = 11;
-	public static final int STORAGE_CADASTRO_TABELASTORAGE = 12;
-	public static final int STORAGE_BUSCA_ARQUIVO		   = 13;
+	public static final int STORAGE_SALVA_ARQUIVO     	   = 15;
+	public static final int STORAGE_REMOVE_ARQUIVO	       = 16;
+	public static final int STORAGE_CADASTRO_TABELASTORAGE = 17;
+	public static final int STORAGE_BUSCA_ARQUIVO		   = 18;
 }

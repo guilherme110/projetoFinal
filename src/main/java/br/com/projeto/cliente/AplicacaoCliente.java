@@ -70,7 +70,7 @@ public class AplicacaoCliente {
 		System.out.println(" ---------- Lista de comandos do sistema ----------");
 		System.out.println("cd -> movimentar entre as pastas [nome da pasta]");
 		System.out.println("mk -> criar diretorio [nome do diretorio]");
-		System.out.println("rmd -> criar diretorio [nome do diretorio]");
+		System.out.println("rmd -> remover diretorio [nome do diretorio]");
 		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
 		System.out.println("rm -> remover arquivo [caminho do arquivo]");
 		System.out.println("la -> lê arquivo [nome do arquivo]");
