@@ -14,7 +14,6 @@ import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.MapDiretorio;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
-import br.com.projeto.utils.Estatistica;
 
 /**Classe de serviços da aplicação do cliente.
  * Cria um objeto do tipo mapDiretorio responsável pela serialização e 
@@ -25,7 +24,6 @@ import br.com.projeto.utils.Estatistica;
  */
 public class ClienteServico {
 	public MapDiretorio mapDiretorio;
-	public Estatistica estatistica;
 	
 	/**Construtor da classe.
 	 * Cria o objeto de conexão com os servidores.
@@ -34,8 +32,6 @@ public class ClienteServico {
 	 */
 	public ClienteServico(ServiceProxy kVProxy) {
 		mapDiretorio = new MapDiretorio(kVProxy);
-		estatistica = new Estatistica(1);
-		estatistica.clear();
 	}
 	
 	/**Serviço de ir para outro diretório.
@@ -130,13 +126,8 @@ public class ClienteServico {
 		ArrayList<List<String>> listaDados = new ArrayList<List<String>>();
 		List<String> listaArquivos = new ArrayList<String>();
 		List<String> listaDiretorios = new ArrayList<String>();
-		Long horarioReq, horarioResp = 0L;
 		
-		estatistica.clear();
-		horarioReq = System.nanoTime();
 		listaDados = mapDiretorio.getListaDados(cliente.getDiretorioClienteAtual());
-		horarioResp = System.nanoTime();
-		
 		listaArquivos = listaDados.get(0);
 		listaDiretorios = listaDados.get(1);
 		
@@ -152,7 +143,6 @@ public class ClienteServico {
 			for (String arquivo : listaArquivos)
 				System.out.print("\"" + arquivo + "\"    ");
 		}
-		estatistica.salvaDados(Constantes.LISTA_DADOS, null, horarioReq, horarioResp);
 		System.out.println(" ");
 	}
 
@@ -174,15 +164,12 @@ public class ClienteServico {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
 		int count = 0;
-		Long horarioReq, horarioResp = 0L;
 		
 		novoArquivo.setNomeArquivo(arquivo.getName());
 		novoArquivo.setTamanhoArquivo(arquivo.length());
 		novoArquivo.setTipoArquivo(tipoArquivo);
 
 		try {
-			estatistica.clear();
-			horarioReq = System.nanoTime();
 			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getFNumeroStorages())) {		
 				for (Storage storage : listaStorages) {
@@ -197,9 +184,6 @@ public class ClienteServico {
 				//salva os dados estatisticos.
 				for (int i = 0; i < count; i++)
 					thread[i].join();
-				horarioResp = System.nanoTime();
-				estatistica.salvaDados(Constantes.SALVA_ARQUIVO, novoArquivo,
-						horarioReq, horarioResp);
 			} else {
 				System.out.println("Erro ao salvar o arquivo nos storages!");
 			}
@@ -226,10 +210,7 @@ public class ClienteServico {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
 		int count = 0;
-		Long horarioReq, horarioResp = 0L;
 		
-		estatistica.clear();
-		horarioReq = System.nanoTime();
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
 		if (arquivo != null) {
 			try {
@@ -245,10 +226,9 @@ public class ClienteServico {
 					
 					//aguarda todas as Thread's serem finalizadas e
 					//salva os dados estatisticos.
-					for (int i = 0; i < count; i++)
+					for (int i = 0; i < count; i++) {
 						thread[i].join();
-					horarioResp = System.nanoTime();
-					estatistica.salvaDados(Constantes.REMOVE_ARQUIVO, arquivo, horarioReq, horarioResp);
+					}
 				} else {
 					System.out.println("Erro ao verificar os storages com o arquivo!");
 				}
@@ -280,10 +260,7 @@ public class ClienteServico {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
 		int count = 0;
-		Long horarioReq, horarioResp = 0L;
 		
-		estatistica.clear();
-		horarioReq = System.nanoTime();
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
 		if (arquivo != null) {
 			try {
@@ -309,9 +286,7 @@ public class ClienteServico {
 					
 					System.out.println("Verificando integridade do arquivo...");
 					if (verificaIntegridadeDados(arquivo, listaLocalNovoArquivo, cliente.getLocalArmazenamento())) {
-						horarioResp = System.nanoTime();
 						System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
-						estatistica.salvaDados(Constantes.BUSCA_ARQUIVO, arquivo, horarioReq, horarioResp);
 					} else {
 						System.out.println("Arquivo danificado ou modificado pelo storage!");
 					}

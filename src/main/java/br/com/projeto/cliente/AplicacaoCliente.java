@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import bftsmart.tom.ServiceProxy;
+import br.com.projeto.testes.LatenciaCliente;
 import br.com.projeto.utils.Formatacao;
 
 
@@ -75,6 +76,7 @@ public class AplicacaoCliente {
 		System.out.println("rm -> remover arquivo [caminho do arquivo]");
 		System.out.println("la -> lê arquivo [nome do arquivo]");
 		System.out.println("ls -> listar arquivos e diretorios");
+		System.out.println("ts -> teste de performance");
 		System.out.println("exit -> sair do programa");
 	}
 
@@ -130,6 +132,9 @@ public class AplicacaoCliente {
 			break;
 		case "ls":
 			opcaoListaDados();
+			break;
+		case "ts":
+			opcaoTestes();
 			break;
 		case "exit":
 			finalizaAplicacao(leitor);
@@ -199,10 +204,7 @@ public class AplicacaoCliente {
 		}
 		clienteServico.criaDiretorio(nomeDiretorio, cliente);
 	}
-	
-	
-	
-	
+
 	/**Método de opcao para remover um novo diretorio.
 	 * Caso o nome do diretorio não seja informado solicita o nome dele.
 	 * Por último chama o serviço de remover diretorio.
@@ -306,5 +308,152 @@ public class AplicacaoCliente {
 	 */
 	private static void opcaoListaDados() {
 		clienteServico.listaDados(cliente);
+	}
+	
+	/**Método de opção para realizar testes no sistema.
+	 * Primeiramenta solicita o numero de requisições a ser utilizado no teste.
+	 * Em seguida solicita a opção de teste a ser realizado.
+	 * Dependendo da opção selecionada é solicitado um arquivo para ser utilizado no teste.	 
+	 */
+	private static void opcaoTestes() {
+		int numeroReq = 0;
+		int opcaoTeste = 0;
+		String caminhoArquivo;
+
+		numeroReq = verificaNumReq();
+		
+		if (numeroReq != 0) {
+			opcaoTeste = verificaOpcaoTeste();
+			if (opcaoTeste != 0) {
+				LatenciaCliente testeLatencia = new LatenciaCliente(numeroReq, cliente, clienteServico);
+				
+				switch (opcaoTeste) {
+				case 1:
+					testeLatencia.testeListarDados();
+					break;
+				case 2:
+					caminhoArquivo = verificaOpcaoArquivo();
+					if (caminhoArquivo != null) {
+						testeLatencia.testeSalvarArquivo(caminhoArquivo);
+					} else {
+						System.out.println("Opção inválida!");
+					}
+					
+					break;
+				case 3:
+					caminhoArquivo = verificaOpcaoArquivo();
+					if (caminhoArquivo != null) {
+						testeLatencia.testeRemoverArquivo(caminhoArquivo);
+					} else {
+						System.out.println("Opção inválida!");
+					}
+					
+					break;
+				default:
+					System.out.println("Opção invalida!");
+					break;
+				}
+			} else {
+				System.out.println("Opção invalida!");
+			}
+		} else {
+			System.out.println("Número de requisições inválido!");
+		}
+			
+	}
+
+	/**Método para verificar o número de requisições escolhido no teste
+	 * 
+	 * @return o número de requisições escolhido
+	 */
+	@SuppressWarnings("resource")
+	private static int verificaNumReq() {
+		Scanner leitor = new Scanner(System.in);
+		String comando;
+		int numeroReq;
+		
+		System.out.println(" ---------- Escolha a quantidade de requisições do teste ----------");	
+		System.out.println(" ");
+		System.out.print("Quantidade -> ");
+		comando = leitor.nextLine();
+		if (!comando.isEmpty()) {
+			try {
+				numeroReq = Integer.parseInt(comando.split(" ")[0]);
+				return numeroReq;
+			} catch (Exception e) {
+				System.out.println("Número de requisições inválido!");
+			}		
+		}
+		return 0;
+	}
+	
+	/**Método para verificar a opção escolhida para o teste.
+	 * 
+	 * @return a opção escolhida para o teste.
+	 */
+	@SuppressWarnings("resource")
+	private static int verificaOpcaoTeste() {
+		Scanner leitor = new Scanner(System.in);
+		String comando;
+		int opcaoTeste = 0;
+		
+		System.out.println(" ---------- Escolha a opção do teste ----------");
+		System.out.println("1 -> teste de leitura de arquivos e diretorios");	
+		System.out.println("2 -> teste de salvamento de arquivos");	
+		System.out.println("3 -> teste de remoção de arquivos");	
+		System.out.println(" ");
+		System.out.print("Opção -> ");
+		comando = leitor.nextLine();
+		if (!comando.isEmpty()) {
+			try {
+				opcaoTeste = Integer.parseInt(comando.split(" ")[0]);
+				return opcaoTeste;
+			} catch (Exception e) {
+				System.out.println("Opção inválida!");
+			}		
+		}
+		return 0;
+	}
+	
+	/**Método para verificar o arquivo a ser escolhido no teste
+	 * 
+	 * @return caminho para o arquivo escolhido.
+	 */
+	@SuppressWarnings("resource")
+	private static String verificaOpcaoArquivo() {
+		Scanner leitor = new Scanner(System.in);
+		String comando;
+		String caminhoArquivo = null;
+		int opcaoArquivo;
+			
+		System.out.println(" ---------- Escolha o arquivo a ser utilizado no teste ----------");
+		System.out.println("1 -> arquivo pequeno (~ 1 Kb)");	
+		System.out.println("2 -> arquivo médio (~ 1 Mb)");	
+		System.out.println("3 -> arquivo grande (~ 10 Mb)");	
+		System.out.println(" ");
+		System.out.print("Arquivo -> ");
+		comando = leitor.nextLine();
+		if (!comando.isEmpty()) {
+			try {
+				opcaoArquivo = Integer.parseInt(comando.split(" ")[0]);
+				switch (opcaoArquivo) {
+				case 1:
+					caminhoArquivo = "./testes/ArquivoPequeno.txt";
+					break;
+				case 2:
+					caminhoArquivo = "./testes/ArquivoMedio.txt";
+					break;
+				case 3:
+					caminhoArquivo = "./testes/ArquivoGrande.txt";
+					break;
+				default:
+					break;
+				}
+				return caminhoArquivo;
+			} catch (Exception e) {
+				System.out.println("Opção inválida!");
+			}		
+		}
+		return null;
 	}
 }

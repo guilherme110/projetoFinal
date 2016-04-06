@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
 import bftsmart.tom.util.Storage;
 import br.com.projeto.diretorio.Arquivo;
 
-/**Classe que cálcula e salvo os dados de uma determinada requisição.
+/**Classe que cálcula e salva os dados de uma determinada requisição.
  * Utiliza a biblioteca log4j para trabalhar com Log's.
  * 
  * @author guilherme
@@ -48,8 +48,7 @@ public class Estatistica {
 	 * @param horarioReq tempo de inicio da requisição.
 	 * @param horarioResp tempo final da requisição.
 	 */
-	public void salvaDados(int operacao, Arquivo arquivo, 
-			long horarioReq, long horarioResp) {
+	public void salvaDados(int operacao, Arquivo arquivo) {
 		StringBuilder mensagemSaida = new StringBuilder();
 		Formatacao format = new Formatacao();
 		
@@ -76,12 +75,11 @@ public class Estatistica {
 			break;
 		}
 		
-		this.st.store(horarioResp - horarioReq);
-		mensagemSaida.append("Average time for 1 executions (-10%) = " + this.st.getAverage(true) / 1000 + " us\n");
-		mensagemSaida.append("Standard desviation for 1 executions (-10%) = " + this.st.getDP(true) / 1000 + " us\n");
-		mensagemSaida.append("Average time for 1 executions (all samples) = " + this.st.getAverage(false) / 1000 + " us\n");
-		mensagemSaida.append("Standard desviation for 1 executions (all samples) = " + this.st.getDP(false) / 1000 + " us\n");
-		mensagemSaida.append("Maximum time for 1 executions (all samples) = " + this.st.getMax(false) / 1000 + " us\n");
+		mensagemSaida.append("Average time for " + this.getNumeroReq() / 2 + " executions (-10%) = " + this.st.getAverage(true) / 1000 + " us\n");
+		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() / 2 + " executions (-10%) = " + this.st.getDP(true) / 1000 + " us\n");
+		mensagemSaida.append("Average time for " + this.getNumeroReq() / 2 + " executions (all samples) = " + this.st.getAverage(false) / 1000 + " us\n");
+		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() / 2 + " executions (all samples) = " + this.st.getDP(false) / 1000 + " us\n");
+		mensagemSaida.append("Maximum time for " + this.getNumeroReq() / 2 + " executions (all samples) = " + this.st.getMax(false) / 1000 + " us\n");
 		
 		this.logger.info(mensagemSaida);
 	}
@@ -92,7 +90,7 @@ public class Estatistica {
 	public void clear() {
 		this.setSt(new Storage(this.getNumeroReq()));	
 	}
-	
+		
 	public Storage getSt() {
 		return st;
 	}
@@ -114,5 +112,5 @@ public class Estatistica {
 
 	public void setNumeroReq(int numeroReq) {
 		this.numeroReq = numeroReq;
-	}	
+	}
 }
