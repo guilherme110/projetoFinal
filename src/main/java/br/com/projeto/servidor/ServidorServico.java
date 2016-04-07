@@ -46,7 +46,7 @@ public class ServidorServico {
 	    try {
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 		
 	    String msgRetorno = ArvoreDiretorio.addDiretorio(diretorioCliente, nomeNovoDiretorio);
@@ -78,7 +78,7 @@ public class ServidorServico {
 	    try {
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 		
 	    String msgRetorno = ArvoreDiretorio.remDiretorio(diretorioCliente, nomeDiretorio);
@@ -111,7 +111,7 @@ public class ServidorServico {
 	    try {
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 	    listaDados = arvoreDiretorio.listaDados(diretorioCliente);
 	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
@@ -145,7 +145,7 @@ public class ServidorServico {
 	    try {
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 		listaAux = arvoreDiretorio.listaDiretorios(diretorioCliente);
 		retorno = listaAux.contains(nomeDiretorio);
@@ -288,7 +288,7 @@ public class ServidorServico {
 	    try {
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 	    
 	    arquivo = arvoreDiretorio.buscaArquivo(nomeArquivo, diretorioCliente);
@@ -326,7 +326,7 @@ public class ServidorServico {
 	    	tabelaStorage.put(novoStorage.getIdStorage(), novoStorage);
 	    	res = true;
 	    } catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	       res = false;
 	    }
 	   
@@ -362,7 +362,7 @@ public class ServidorServico {
 				listaStorages.add(storage);
 			}
 		} catch (ClassNotFoundException ex) {
-	       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	       return null;
 		}
 		  

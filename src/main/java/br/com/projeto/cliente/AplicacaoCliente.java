@@ -22,13 +22,13 @@ public class AplicacaoCliente {
 	
 	/**Método inicial da aplicação
 	 * 
-	 * @param args[0] Id para o proxy de comunicação com o servidor
-	 * de meta dados e args[1] numero de storages que o cliente deseja
-	 * que o arquivo seja salvo.
+	 * @param args[0] Id para o proxy de comunicação com o servidor de meta dados
+	 * args[1]: numero de chash's que o sistema suportará
+	 * args[2]: diretorio de armazenamento de arquivos baixados do sistema.
 	 */
 	public static void main(String[] args) {
-		if(args.length < 1) {
-			System.out.println("Necessário passar o <process id>");
+		if(args.length < 3) {
+			System.out.println("Necessário passar o <process id>, <f do sistema> e <local de armazenamento>");
 			System.exit(-1);
 		}
 		criaCliente(args[0], Integer.parseInt(args[1]), args[2]);

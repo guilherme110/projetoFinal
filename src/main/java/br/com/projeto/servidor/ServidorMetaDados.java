@@ -31,7 +31,7 @@ import br.com.projeto.utils.Constantes;
  * o objeto servidor serviço e o objeto da tabela de storage.
  *
  */
-public class Servidor extends DefaultSingleRecoverable {
+public class ServidorMetaDados extends DefaultSingleRecoverable {
 	private int 	idServidor;
 	ArvoreDiretorio arvoreDiretorio;
 	ServidorServico servidorServico;
@@ -44,7 +44,7 @@ public class Servidor extends DefaultSingleRecoverable {
 	 * 
 	 * @param idServidor
 	 */
-	public Servidor(int idServidor) {		
+	public ServidorMetaDados(int idServidor) {		
 		this.idServidor = idServidor;
 		arvoreDiretorio = new ArvoreDiretorio();
 		servidorServico = new ServidorServico();
@@ -62,7 +62,7 @@ public class Servidor extends DefaultSingleRecoverable {
             System.out.println("Necessário passar o <id do Servidor>");
             System.exit(-1);
         }
-        new Servidor(Integer.parseInt(args[0]));
+        new ServidorMetaDados(Integer.parseInt(args[0]));
 	}
 	
 	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
@@ -187,7 +187,7 @@ public class Servidor extends DefaultSingleRecoverable {
             bos.close();
             return bos.toByteArray();
         } catch (IOException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
             return new byte[0];
         }   
 	}
@@ -220,11 +220,11 @@ public class Servidor extends DefaultSingleRecoverable {
 	    	numeroStorages = (Integer) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
 			System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    	ex.printStackTrace(); 
 	    } catch (IOException ex) {
 			System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace(); 
 		}
 		
@@ -252,7 +252,7 @@ public class Servidor extends DefaultSingleRecoverable {
 			objOut.close();
 		} catch (IOException ex) {
 			System.out.println("Erro na escrita da saída dos dados"); 
-			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace();
 		}
 		return saida.toByteArray();
@@ -284,11 +284,11 @@ public class Servidor extends DefaultSingleRecoverable {
 	    	diretorioCliente = (List<String>) objIn.readObject();
 	    } catch (ClassNotFoundException ex) {
 			System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 	    	ex.printStackTrace(); 
 	    } catch (IOException ex) {
 	    	System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace(); 
 		}
 		
@@ -307,7 +307,7 @@ public class Servidor extends DefaultSingleRecoverable {
 			objOut.close();
 		} catch (IOException ex) {
 			System.out.println("Erro na escrita da saída dos dados"); 
-			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 			ex.printStackTrace();
 		}
 		return saida.toByteArray();

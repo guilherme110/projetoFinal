@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.cliente.Cliente;
-import br.com.projeto.servidor.Servidor;
+import br.com.projeto.servidor.ServidorMetaDados;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 
@@ -65,7 +65,7 @@ public class MapDiretorio {
 		    try {
 		    	listaStorages = (List<Storage>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
-		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 		       return null;
 		    }
 		} catch (IOException ex) {
@@ -105,7 +105,7 @@ public class MapDiretorio {
 		    try {
 		    	listaStorages = (List<Storage>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
-		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 		    }
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -163,7 +163,7 @@ public class MapDiretorio {
 		    try {
 		    	listaStorages = (List<Storage>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
-		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 		    }
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -200,7 +200,7 @@ public class MapDiretorio {
 		    try {
 		    	listaDados = (ArrayList<List<String>>) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
-		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 		    }
 			return listaDados;
 		} catch (IOException ex) {
@@ -285,7 +285,7 @@ public class MapDiretorio {
 		        	return null;
 		    	arquivo = (Arquivo) objIn.readObject();
 		    } catch (ClassNotFoundException ex) {
-		       Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 		    }
 		} catch (IOException ex) {
 			ex.printStackTrace();
