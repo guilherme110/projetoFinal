@@ -48,14 +48,13 @@ public class AplicacaoCliente {
 		cliente = new Cliente();
 		
 		cliente.setIdCliente(Integer.parseInt(idCliente));
-		cliente.setNomeCliente(idCliente);
 		cliente.setDiretorioClienteAtual(new ArrayList<String>());
 		cliente.getDiretorioClienteAtual().add("home");
 		cliente.setFNumeroStorages(2 * FNumeroStorages + 1);
 		cliente.setLocalArmazenamento(localArmazenamento);
 		
 		try {
-			KVProxy = new ServiceProxy(cliente.getIdCliente(), "config");
+			KVProxy = new ServiceProxy(cliente.getIdCliente());
 			clienteServico = new ClienteServico(KVProxy);
 		} catch (Exception e) {
 			System.out.println("Erro de comunicação com os servidores!");

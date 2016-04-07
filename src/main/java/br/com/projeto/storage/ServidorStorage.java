@@ -82,7 +82,7 @@ public class ServidorStorage {
 		
 		//cria o objeto de proxy com o Id informado como parametro
 		try {
-			KVProxy = new ServiceProxy(storage.getIdStorage(), "config");
+			KVProxy = new ServiceProxy(storage.getIdStorage());
 			if (!enviaDadosStorage(storage))
 				throw new Exception();
 			System.out.println("Dados enviados para o servidor de meta dados com sucesso!");
