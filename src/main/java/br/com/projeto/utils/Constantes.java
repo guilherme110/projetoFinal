@@ -22,6 +22,6 @@ public class Constantes {
 	/*Opções para storage*/
 	public static final int STORAGE_SALVA_ARQUIVO     	   = 15;
 	public static final int STORAGE_REMOVE_ARQUIVO	       = 16;
-	public static final int STORAGE_CADASTRO_TABELASTORAGE = 17;
-	public static final int STORAGE_BUSCA_ARQUIVO		   = 18;
+	public static final int STORAGE_BUSCA_ARQUIVO		   = 17;
+	public static final int STORAGE_CADASTRO_TABELASTORAGE = 18;
 }
