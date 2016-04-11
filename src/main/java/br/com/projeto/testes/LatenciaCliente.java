@@ -1,6 +1,10 @@
 package br.com.projeto.testes;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
 
 import br.com.projeto.cliente.Cliente;
 import br.com.projeto.cliente.ClienteServico;
@@ -71,8 +75,17 @@ public class LatenciaCliente {
 	 * Por último, grava os resultados em log.
 	 * 
 	 */
-	public void testeSalvarArquivo(String caminhoArquivo) {
-		File arquivoTemp = new File(caminhoArquivo);
+	public void testeSalvarArquivo(String nomeArquivo) {
+		File arquivoTemp = null;
+		try {
+			arquivoTemp = File.createTempFile(nomeArquivo, ".tmp");
+			arquivoTemp.deleteOnExit();
+			FileOutputStream out = new FileOutputStream(arquivoTemp);
+			InputStream caminhoArquivo = this.getClass().getResourceAsStream("/file/" + nomeArquivo + ".txt");
+			IOUtils.copy(caminhoArquivo, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null, null);
 		this.getEstatistica().clear();
 		
@@ -105,8 +118,17 @@ public class LatenciaCliente {
 	 * Por último, grava os resultados em log.
 	 * 
 	 */
-	public void testeRemoverArquivo(String caminhoArquivo) {
-		File arquivoTemp = new File(caminhoArquivo);
+	public void testeRemoverArquivo(String nomeArquivo) {
+		File arquivoTemp = null;
+		try {
+			arquivoTemp = File.createTempFile(nomeArquivo, ".tmp");
+			arquivoTemp.deleteOnExit();
+			FileOutputStream out = new FileOutputStream(arquivoTemp);
+			InputStream caminhoArquivo = this.getClass().getResourceAsStream("/file/" + nomeArquivo + ".txt");
+			IOUtils.copy(caminhoArquivo, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null, null);
 		this.getEstatistica().clear();
 		

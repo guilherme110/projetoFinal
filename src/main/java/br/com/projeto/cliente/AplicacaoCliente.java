@@ -437,13 +437,13 @@ public class AplicacaoCliente {
 				opcaoArquivo = Integer.parseInt(comando.split(" ")[0]);
 				switch (opcaoArquivo) {
 				case 1:
-					caminhoArquivo = "./testes/ArquivoPequeno.txt";
+					caminhoArquivo = "ArquivoPequeno";
 					break;
 				case 2:
-					caminhoArquivo = "./testes/ArquivoMedio.txt";
+					caminhoArquivo = "ArquivoMedio";
 					break;
 				case 3:
-					caminhoArquivo = "./testes/ArquivoGrande.txt";
+					caminhoArquivo = "ArquivoGrande";
 					break;
 				default:
 					break;
