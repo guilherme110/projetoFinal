@@ -24,6 +24,9 @@ import br.com.projeto.utils.Constantes;
  */
 public class ClienteServico {
 	public MapDiretorio mapDiretorio;
+	private final int ARQUIVOS_NAO_COMPARADOS = 0;
+	private final int ARQUIVOS_IGUAIS = 1;
+	private final int ARQUIVOS_DIFERENTES = 2;
 	
 	/**Construtor da classe.
 	 * Cria o objeto de conexão com os servidores.
@@ -284,6 +287,7 @@ public class ClienteServico {
 					
 					System.out.println("Verificando integridade do arquivo...");
 					if (verificaIntegridadeDados(arquivo, listaLocalNovoArquivo, cliente)) {
+						System.out.println("Arquivo recebido sem modificações.");
 						System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
 					} else {
 						System.out.println("Arquivo danificado ou modificado pelo storage!");
@@ -303,61 +307,26 @@ public class ClienteServico {
 	
 	/**Método que verifica a integridade do arquivo.
 	 * Varre a lista de local do novo arquivo, para pegar cada arquivo que foi transferido do storage.
-	 * Compara em dois em dois os arquivos recebidos do storage, com o auxilio do biblioteca IOUtils.
-	 * Caso os dois arquivos sejam iguais, deleta um arquivo e utiliza o outro para comparar com o
-	 * próximo arquivo.
-	 * No fim renomeia o último arquivo restante para o nome do arquivo baixado.
+	 * Compara o primeiro arquivo com o restante da lista de arquivos.
+	 * Caso o arquivo seja igual ao numero de storages que o arquivo foi salvo menos o numero de falhas aceitos,
+	 * o arquivo está integro.
+	 * Caso contrario, busca o próximo arquivo e varre novamente a lista.
+	 * Implementada uma matriz para não comparar arquivos que anteriormente já foram comparados.
+	 * 		- 0: arquivos não comparados
+	 * 		- 1: arquivos iguais
+	 * 		- 2: arquivos diferentes
+	 * No fim apaga os arquivos temporários.
 	 * 
 	 * @param arquivo dados do arquivo a ser verificado.
 	 * @param listaLocalNovoArquivo lista com o local dos arquivos baixados dos storages.
-	 * @param localArmazenamento local default de armazenamento do cliente
+	 * @param cliente dados do cliente.
 	 * @return boolean com status da verificação.
 	 */
-	@SuppressWarnings("unused")
-	private boolean verificaIntegridadeDados2(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
-			Cliente cliente) {
-		boolean arquivosIntegros = true;
-		int count = 0;
-		File arquivoFisico = null;
-		
-		try {
-			while ((count < listaLocalNovoArquivo.size() - 1) && (arquivosIntegros = true)) {
-				String arquivoAux1 = listaLocalNovoArquivo.get(count);
-				String arquivoAux2 = listaLocalNovoArquivo.get(count + 1);
-				FileInputStream fis1 = new FileInputStream(arquivoAux1);
-				FileInputStream fis2 = new FileInputStream(arquivoAux2);
-				arquivoFisico = new File(arquivoAux1);
-				
-				if (!IOUtils.contentEquals(fis1, fis2))
-					arquivosIntegros = false;
-			
-				if(arquivoFisico.exists()) {
-					arquivoFisico.delete();
-					arquivoFisico = new File(arquivoAux2);
-				}
-				
-				fis1.close();
-				fis2.close();
-				count++;
-			}
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-			
-		if (arquivoFisico.exists()) {
-			File novoNome = new File(cliente.getLocalArmazenamento() + arquivo.getNomeArquivo());
-			arquivoFisico.renameTo(novoNome);
-		}
-		return arquivosIntegros;
-	}
-	
 	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
 			Cliente cliente) {
 		int numeroFValido = cliente.getNumeroStorages() - cliente.getfNumeroFalhas();
 		int arquivosIguais = 1;
+		int comparacaoAux[][] = new int [listaLocalNovoArquivo.size()] [listaLocalNovoArquivo.size()];
 		File arquivoFisico = null;
 		
 		try {
@@ -371,10 +340,20 @@ public class ClienteServico {
 						FileInputStream fis1 = new FileInputStream(arquivoAux1);
 						FileInputStream fis2 = new FileInputStream(arquivoAux2);
 						
-						if (IOUtils.contentEquals(fis1, fis2)) {
+						if (comparacaoAux[j][i] == ARQUIVOS_NAO_COMPARADOS) {
+							if (IOUtils.contentEquals(fis1, fis2)) {
+								comparacaoAux[i][j] = ARQUIVOS_IGUAIS;
+								comparacaoAux[j][i] = ARQUIVOS_IGUAIS;
+								arquivosIguais++;
+							} else {
+								comparacaoAux[i][j] = ARQUIVOS_DIFERENTES;
+								comparacaoAux[j][i] = ARQUIVOS_DIFERENTES;
+							}
+						} else if (comparacaoAux[j][i] == ARQUIVOS_IGUAIS) {
 							arquivosIguais++;
 						}
-						if (arquivosIguais == numeroFValido) {
+						
+						if (arquivosIguais == numeroFValido) {	
 							arquivoFisico = new File(arquivoAux1);
 							if (arquivoFisico.exists()) {
 								File novoNome = new File(cliente.getLocalArmazenamento() + arquivo.getNomeArquivo());
@@ -401,6 +380,10 @@ public class ClienteServico {
 		return false;
 	}
 
+	/**
+	 * Método para deletar os arquivos temporários
+	 * @param listaLocalNovoArquivo lista  de arquivos temporários
+	 */
 	private void deletaArquivosTemporarios(
 			ArrayList<String> listaLocalNovoArquivo) {
 		// TODO Auto-generated method stub
