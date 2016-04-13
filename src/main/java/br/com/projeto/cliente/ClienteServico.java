@@ -160,18 +160,16 @@ public class ClienteServico {
 	public void salvaArquivo(File arquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo novoArquivo = new Arquivo();
-		String tipoArquivo = arquivo.getName().substring((arquivo.getName().lastIndexOf(".") + 1));
-		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
-		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getNumeroStorages()];
 		int count = 0;
 		
 		novoArquivo.setNomeArquivo(arquivo.getName());
 		novoArquivo.setTamanhoArquivo(arquivo.length());
-		novoArquivo.setTipoArquivo(tipoArquivo);
 
 		try {
 			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
-			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getFNumeroStorages())) {		
+			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {		
 				for (Storage storage : listaStorages) {
 					comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
 							arquivo, novoArquivo, Constantes.STORAGE_SALVA_ARQUIVO);
@@ -207,8 +205,8 @@ public class ClienteServico {
 	public void removeArquivo(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
-		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
-		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getNumeroStorages()];
 		int count = 0;
 		
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
@@ -257,8 +255,8 @@ public class ClienteServico {
 	public void baixaArquivo(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
-		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getFNumeroStorages()];
-		Thread thread[] = new Thread[cliente.getFNumeroStorages()];
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getNumeroStorages()];
 		int count = 0;
 		
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
@@ -285,7 +283,7 @@ public class ClienteServico {
 					}
 					
 					System.out.println("Verificando integridade do arquivo...");
-					if (verificaIntegridadeDados(arquivo, listaLocalNovoArquivo, cliente.getLocalArmazenamento())) {
+					if (verificaIntegridadeDados(arquivo, listaLocalNovoArquivo, cliente)) {
 						System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
 					} else {
 						System.out.println("Arquivo danificado ou modificado pelo storage!");
@@ -315,8 +313,9 @@ public class ClienteServico {
 	 * @param localArmazenamento local default de armazenamento do cliente
 	 * @return boolean com status da verificação.
 	 */
-	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
-			String localArmazenamento) {
+	@SuppressWarnings("unused")
+	private boolean verificaIntegridadeDados2(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
+			Cliente cliente) {
 		boolean arquivosIntegros = true;
 		int count = 0;
 		File arquivoFisico = null;
@@ -349,9 +348,70 @@ public class ClienteServico {
 		}
 			
 		if (arquivoFisico.exists()) {
-			File novoNome = new File(localArmazenamento + arquivo.getNomeArquivo());
+			File novoNome = new File(cliente.getLocalArmazenamento() + arquivo.getNomeArquivo());
 			arquivoFisico.renameTo(novoNome);
 		}
 		return arquivosIntegros;
 	}
+	
+	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
+			Cliente cliente) {
+		int numeroFValido = cliente.getNumeroStorages() - cliente.getfNumeroFalhas();
+		int arquivosIguais = 1;
+		File arquivoFisico = null;
+		
+		try {
+			for (int i = 0; i < listaLocalNovoArquivo.size(); i++) {
+				String arquivoAux1 = listaLocalNovoArquivo.get(i);
+				
+				for (int j = 0; j < listaLocalNovoArquivo.size(); j++) {
+					if (i != j) {
+						String arquivoAux2 = listaLocalNovoArquivo.get(j);
+						
+						FileInputStream fis1 = new FileInputStream(arquivoAux1);
+						FileInputStream fis2 = new FileInputStream(arquivoAux2);
+						
+						if (IOUtils.contentEquals(fis1, fis2)) {
+							arquivosIguais++;
+						}
+						if (arquivosIguais == numeroFValido) {
+							arquivoFisico = new File(arquivoAux1);
+							if (arquivoFisico.exists()) {
+								File novoNome = new File(cliente.getLocalArmazenamento() + arquivo.getNomeArquivo());
+								arquivoFisico.renameTo(novoNome);
+								deletaArquivosTemporarios(listaLocalNovoArquivo);
+								
+								fis1.close();
+								fis2.close();
+							}
+							
+							return true;
+						}
+						fis1.close();
+						fis2.close();
+					}
+				}
+				arquivosIguais = 1;
+			}	
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		return false;
+	}
+
+	private void deletaArquivosTemporarios(
+			ArrayList<String> listaLocalNovoArquivo) {
+		// TODO Auto-generated method stub
+		
+		for (String localArquivoTmp : listaLocalNovoArquivo) {
+			File arqTmp = new File(localArquivoTmp);
+			if(arqTmp.exists()) {
+				arqTmp.delete();
+			}
+		}
+	
+	}
+	
 }

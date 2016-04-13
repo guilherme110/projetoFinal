@@ -78,7 +78,7 @@ public class LatenciaCliente {
 	public void testeSalvarArquivo(String nomeArquivo) {
 		File arquivoTemp = null;
 		try {
-			arquivoTemp = File.createTempFile(nomeArquivo, ".tmp");
+			arquivoTemp = File.createTempFile(nomeArquivo + "-", ".tmp");
 			arquivoTemp.deleteOnExit();
 			FileOutputStream out = new FileOutputStream(arquivoTemp);
 			InputStream caminhoArquivo = this.getClass().getResourceAsStream("/file/" + nomeArquivo + ".txt");
@@ -86,7 +86,7 @@ public class LatenciaCliente {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null, null);
+		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null);
 		this.getEstatistica().clear();
 		
 		//Warm UP
@@ -129,7 +129,7 @@ public class LatenciaCliente {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null, null);
+		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null);
 		this.getEstatistica().clear();
 		
 		//Warm UP

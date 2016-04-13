@@ -2,7 +2,6 @@ package br.com.projeto.diretorio;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -18,21 +17,17 @@ public class Arquivo implements Serializable{
 	private String 		  nomeArquivo;
 	private Long   		  tamanhoArquivo;
 	private List<Integer> listaIdStorage;
-	private String		  tipoArquivo;
 	private Date   		  dataCriacaoArquivo;
-	private byte[]		  dadosArquivo;
 	
 	public Arquivo() {
 		this.listaIdStorage = new ArrayList<Integer>();
 	}
 	
-	public Arquivo(String nomeArquivo, Long tamanhoArquivo, List<Integer> listaIdStorage,
-			String tipoArquivo) {
+	public Arquivo(String nomeArquivo, Long tamanhoArquivo, List<Integer> listaIdStorage) {
 		super();
 		this.nomeArquivo = nomeArquivo;
 		this.tamanhoArquivo = tamanhoArquivo;
 		this.listaIdStorage = listaIdStorage;
-		this.tipoArquivo = tipoArquivo;
 	}
 
 	public String getNomeArquivo() {
@@ -60,14 +55,6 @@ public class Arquivo implements Serializable{
 		this.listaIdStorage = listaIdStorage;
 	}
 
-	public String getTipoArquivo() {
-		return tipoArquivo;
-	}
-
-	public void setTipoArquivo(String tipoArquivo) {
-		this.tipoArquivo = tipoArquivo;
-	}
-
 	public Date getDataCriacaoArquivo() {
 		return dataCriacaoArquivo;
 	}
@@ -75,15 +62,7 @@ public class Arquivo implements Serializable{
 	public void setDataCriacaoArquivo(Date dataCriacaoArquivo) {
 		this.dataCriacaoArquivo = dataCriacaoArquivo;
 	}
-
-	public byte[] getDadosArquivo() {
-		return dadosArquivo;
-	}
-
-	public void setDadosArquivo(byte[] dadosArquivo) {
-		this.dadosArquivo = dadosArquivo;
-	}
-
+	
 	public void addListaIdStorage(int idStorage) {
 		List<Integer> listaIdStorage = this.getListaIdStorage();
 		
@@ -95,7 +74,6 @@ public class Arquivo implements Serializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(dadosArquivo);
 		result = prime
 				* result
 				+ ((dataCriacaoArquivo == null) ? 0 : dataCriacaoArquivo
@@ -106,8 +84,6 @@ public class Arquivo implements Serializable{
 				+ ((nomeArquivo == null) ? 0 : nomeArquivo.hashCode());
 		result = prime * result
 				+ ((tamanhoArquivo == null) ? 0 : tamanhoArquivo.hashCode());
-		result = prime * result
-				+ ((tipoArquivo == null) ? 0 : tipoArquivo.hashCode());
 		return result;
 	}
 
@@ -120,8 +96,6 @@ public class Arquivo implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Arquivo other = (Arquivo) obj;
-		if (!Arrays.equals(dadosArquivo, other.dadosArquivo))
-			return false;
 		if (dataCriacaoArquivo == null) {
 			if (other.dataCriacaoArquivo != null)
 				return false;
@@ -141,11 +115,6 @@ public class Arquivo implements Serializable{
 			if (other.tamanhoArquivo != null)
 				return false;
 		} else if (!tamanhoArquivo.equals(other.tamanhoArquivo))
-			return false;
-		if (tipoArquivo == null) {
-			if (other.tipoArquivo != null)
-				return false;
-		} else if (!tipoArquivo.equals(other.tipoArquivo))
 			return false;
 		return true;
 	}

@@ -14,7 +14,8 @@ import java.util.List;
 public class Cliente {
 	private int          idCliente;
 	private List<String> diretorioClienteAtual;
-	private int			 FNumeroStorages;
+	private int			 numeroStorages;
+	private int			 fNumeroFalhas;
 	private String		 localArmazenamento;
 	
 	public Cliente() {
@@ -37,12 +38,20 @@ public class Cliente {
 		this.diretorioClienteAtual = diretorioClienteAtual;
 	}
 
-	public int getFNumeroStorages() {
-		return FNumeroStorages;
+	public int getNumeroStorages() {
+		return numeroStorages;
 	}
 
-	public void setFNumeroStorages(int fNumeroStorages) {
-		FNumeroStorages = fNumeroStorages;
+	public void setNumeroStorages(int numeroStorages) {
+		this.numeroStorages = numeroStorages;
+	}
+
+	public int getfNumeroFalhas() {
+		return fNumeroFalhas;
+	}
+
+	public void setfNumeroFalhas(int fNumeroFalhas) {
+		this.fNumeroFalhas = fNumeroFalhas;
 	}
 
 	public String getLocalArmazenamento() {

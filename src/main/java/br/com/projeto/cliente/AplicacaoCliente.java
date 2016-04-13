@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.io.FileUtils;
+
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.testes.LatenciaCliente;
 import br.com.projeto.utils.Formatacao;
@@ -44,13 +46,14 @@ public class AplicacaoCliente {
 	 * @param FNumeroStorages (2 * FNumeroStorages + 1) número de storages a serem utilizados.
 	 * @param localArmazenamento local de armazenamento de arquivos recebidos pelo storage
 	 */	
-	public static void criaCliente(String idCliente, int FNumeroStorages, String localArmazenamento) {
+	public static void criaCliente(String idCliente, int fNumeroFalhas, String localArmazenamento) {
 		cliente = new Cliente();
 		
 		cliente.setIdCliente(Integer.parseInt(idCliente));
 		cliente.setDiretorioClienteAtual(new ArrayList<String>());
 		cliente.getDiretorioClienteAtual().add("home");
-		cliente.setFNumeroStorages(2 * FNumeroStorages + 1);
+		cliente.setNumeroStorages(2 * fNumeroFalhas + 1);
+		cliente.setfNumeroFalhas(fNumeroFalhas);
 		cliente.setLocalArmazenamento(localArmazenamento);
 		
 		try {
@@ -248,7 +251,7 @@ public class AplicacaoCliente {
 		}
 		if(arquivoEntrada.exists()) {
 			System.out.println("Nome do arquivo   : " + arquivoEntrada.getName());
-			System.out.println("Tamanho do arquivo: " + format.convertNomeBytes(arquivoEntrada.length()));
+			System.out.println("Tamanho do arquivo: " + format.convertNomeBytes(arquivoEntrada.length(), true));
 			System.out.println("Salvar arquivo (S/N): ");
 			System.out.print("opção: ");
 			String opcao = leitor.next();

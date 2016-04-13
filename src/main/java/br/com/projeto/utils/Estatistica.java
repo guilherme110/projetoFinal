@@ -56,12 +56,12 @@ public class Estatistica {
 		case Constantes.SALVA_ARQUIVO:
 			mensagemSaida.append("Operação: Salvar arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
-			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo()) + "\n");	
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
 		case Constantes.REMOVE_ARQUIVO:
 			mensagemSaida.append("Operação: Remover arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
-			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo()) + "\n");	
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
 		case Constantes.LISTA_DADOS:
 			mensagemSaida.append("Operação: Listar dados\n");
@@ -69,7 +69,7 @@ public class Estatistica {
 		case Constantes.BUSCA_ARQUIVO:
 			mensagemSaida.append("Operação: Busca e baixa arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
-			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo()) + "\n");	
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
 		default:
 			break;

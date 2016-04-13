@@ -56,7 +56,7 @@ public class MapDiretorio {
 			ObjectOutputStream out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(novoArquivo);
 			out1.writeObject(cliente.getDiretorioClienteAtual());
-			out1.writeObject(cliente.getFNumeroStorages());
+			out1.writeObject(cliente.getNumeroStorages());
 			out1.close();
 			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
