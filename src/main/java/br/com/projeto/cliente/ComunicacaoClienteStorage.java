@@ -95,13 +95,13 @@ public class ComunicacaoClienteStorage implements Runnable{
 		String nomeStorage = storage.getNomeStorage();
 		int portaStorage = storage.getPortaConexao();
 		
-		Socket cliente = null;
+		Socket socketCliente = null;
 		try {
-			cliente = new Socket(hostStorage, portaStorage);
+			socketCliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao storage: " + nomeStorage); 
 		    
-			DataOutputStream dos = new DataOutputStream(cliente.getOutputStream());
-			ObjectOutputStream outObj = new ObjectOutputStream(cliente.getOutputStream());
+			DataOutputStream dos = new DataOutputStream(socketCliente.getOutputStream());
+			ObjectOutputStream outObj = new ObjectOutputStream(socketCliente.getOutputStream());
 			
 			dos.writeInt(Constantes.STORAGE_SALVA_ARQUIVO);
 			outObj.writeObject(arquivo);
@@ -114,7 +114,7 @@ public class ComunicacaoClienteStorage implements Runnable{
 				IOUtils.copyLarge(fis, dos);
 			fis.close();
 			dos.close();
-			cliente.close();
+			socketCliente.close();
 		} catch (Exception e) {
 			System.out.println("Erro no envio do arquivo!");
 			e.printStackTrace();
@@ -138,14 +138,14 @@ public class ComunicacaoClienteStorage implements Runnable{
 		String nomeStorage = storage.getNomeStorage();
 		int portaStorage = storage.getPortaConexao();
 		
-		Socket cliente = null;
+		Socket socketCliente = null;
 		try {
-			cliente = new Socket(hostStorage, portaStorage);
+			socketCliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao storage: " + nomeStorage); 
 		    
 		    //monta os dados a ser enviado ao storage (Arquivo e a opção de remover)
-		    DataOutputStream dos = new DataOutputStream(cliente.getOutputStream());
-			ObjectOutputStream outObj = new ObjectOutputStream(cliente.getOutputStream());
+		    DataOutputStream dos = new DataOutputStream(socketCliente.getOutputStream());
+			ObjectOutputStream outObj = new ObjectOutputStream(socketCliente.getOutputStream());
 			
 			System.out.println("Removendo arquivo...");
 			dos.writeInt(Constantes.STORAGE_REMOVE_ARQUIVO);
@@ -153,7 +153,7 @@ public class ComunicacaoClienteStorage implements Runnable{
 		   
 			outObj.close();
 	        dos.close();
-	        cliente.close();
+	        socketCliente.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -174,19 +174,19 @@ public class ComunicacaoClienteStorage implements Runnable{
 	 * @param localArmazenamento local de armazenamento do arquivo.
 	 * @return Boolean que indica que a transação ocorreu certo ou errado.
 	 */
-	private boolean buscaArquivoStorage(Storage storage, Arquivo arquivo, String localArmazenamento) {
+	public boolean buscaArquivoStorage(Storage storage, Arquivo arquivo, String localArmazenamento) {
 		String hostStorage = storage.getEnderecoHost();
 		String nomeStorage = storage.getNomeStorage();
 		int portaStorage = storage.getPortaConexao();
 		
-		Socket cliente = null;
+		Socket socketCliente = null;
 		try {
-			cliente = new Socket(hostStorage, portaStorage);
+			socketCliente = new Socket(hostStorage, portaStorage);
 		    System.out.println("O cliente se conectou ao storage: " + nomeStorage); 
 		    
 		    //monta os dados a ser enviado ao storage (Arquivo e a opção de remover)
-		    DataOutputStream dos = new DataOutputStream(cliente.getOutputStream());
-			ObjectOutputStream outObj = new ObjectOutputStream(cliente.getOutputStream());
+		    DataOutputStream dos = new DataOutputStream(socketCliente.getOutputStream());
+			ObjectOutputStream outObj = new ObjectOutputStream(socketCliente.getOutputStream());
 			
 			System.out.println("Buscando arquivo no storage...");
 			dos.writeInt(Constantes.STORAGE_BUSCA_ARQUIVO);
@@ -194,14 +194,14 @@ public class ComunicacaoClienteStorage implements Runnable{
 	        
 	        //recebe os dados do arquivo do storage
 	        System.out.println("Recebendo dados do storage...");
-	        if (!recebeArquivoStorage(cliente.getInputStream(), storage, arquivo, localArmazenamento)) {
+	        if (!recebeArquivoStorage(socketCliente.getInputStream(), storage, arquivo, localArmazenamento)) {
 	        	System.out.println("Erro ao receber o arquivo do storage!");
 	        	return false;
 	        }
 	        
 	        outObj.close();
 	        dos.close();
-	        cliente.close();
+	        socketCliente.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

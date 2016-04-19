@@ -54,20 +54,20 @@ public class Estatistica {
 		
 		switch (operacao) {
 		case Constantes.SALVA_ARQUIVO:
-			mensagemSaida.append("Operação: Salvar arquivo\n");
+			mensagemSaida.append("Operacao: Salvar arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
 		case Constantes.REMOVE_ARQUIVO:
-			mensagemSaida.append("Operação: Remover arquivo\n");
+			mensagemSaida.append("Operacao: Remover arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
 		case Constantes.LISTA_DADOS:
-			mensagemSaida.append("Operação: Listar dados\n");
+			mensagemSaida.append("Operacao: Listar dados\n");
 			break;
 		case Constantes.BUSCA_ARQUIVO:
-			mensagemSaida.append("Operação: Busca e baixa arquivo\n");
+			mensagemSaida.append("Operacao: Busca e baixa arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
@@ -75,11 +75,11 @@ public class Estatistica {
 			break;
 		}
 		
-		mensagemSaida.append("Average time for " + this.getNumeroReq() / 2 + " executions (-10%) = " + this.st.getAverage(true) / 1000 + " us\n");
-		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() / 2 + " executions (-10%) = " + this.st.getDP(true) / 1000 + " us\n");
-		mensagemSaida.append("Average time for " + this.getNumeroReq() / 2 + " executions (all samples) = " + this.st.getAverage(false) / 1000 + " us\n");
-		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() / 2 + " executions (all samples) = " + this.st.getDP(false) / 1000 + " us\n");
-		mensagemSaida.append("Maximum time for " + this.getNumeroReq() / 2 + " executions (all samples) = " + this.st.getMax(false) / 1000 + " us\n");
+		mensagemSaida.append("Average time for " + this.getNumeroReq() + " executions (-10%) = " + this.st.getAverage(true) / 1000 + " us\n");
+		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() + " executions (-10%) = " + this.st.getDP(true) / 1000 + " us\n");
+		mensagemSaida.append("Average time for " + this.getNumeroReq() + " executions (all samples) = " + this.st.getAverage(false) / 1000 + " us\n");
+		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() + " executions (all samples) = " + this.st.getDP(false) / 1000 + " us\n");
+		mensagemSaida.append("Maximum time for " + this.getNumeroReq() + " executions (all samples) = " + this.st.getMax(false) / 1000 + " us\n");
 		
 		this.logger.info(mensagemSaida);
 	}
@@ -88,7 +88,7 @@ public class Estatistica {
 	 * 
 	 */
 	public void clear() {
-		this.setSt(new Storage(this.getNumeroReq()));	
+		this.setSt(new Storage(this.getNumeroReq()));
 	}
 		
 	public Storage getSt() {

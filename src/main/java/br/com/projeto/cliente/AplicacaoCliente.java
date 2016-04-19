@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.commons.io.FileUtils;
-
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.testes.LatenciaCliente;
 import br.com.projeto.utils.Formatacao;
@@ -76,7 +74,7 @@ public class AplicacaoCliente {
 		System.out.println("rmd -> remover diretorio [nome do diretorio]");
 		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
 		System.out.println("rm -> remover arquivo [caminho do arquivo]");
-		System.out.println("la -> lê arquivo [nome do arquivo]");
+		System.out.println("la -> le arquivo [nome do arquivo]");
 		System.out.println("ls -> listar arquivos e diretorios");
 		System.out.println("ts -> teste de performance");
 		System.out.println("exit -> sair do programa");
@@ -253,7 +251,7 @@ public class AplicacaoCliente {
 			System.out.println("Nome do arquivo   : " + arquivoEntrada.getName());
 			System.out.println("Tamanho do arquivo: " + format.convertNomeBytes(arquivoEntrada.length(), true));
 			System.out.println("Salvar arquivo (S/N): ");
-			System.out.print("opção: ");
+			System.out.print("opcao: ");
 			String opcao = leitor.next();
 			if (opcao.equalsIgnoreCase("S")){
 				clienteServico.salvaArquivo(arquivoEntrada, cliente);
@@ -300,7 +298,8 @@ public class AplicacaoCliente {
 			System.out.print("Insira o nome do arquivo: ");
 			nomeArquivo = leitor.nextLine();
 		}
-		clienteServico.baixaArquivo(nomeArquivo, cliente);
+		//clienteServico.baixaArquivoThread(nomeArquivo, cliente);
+		clienteServico.baixaArquivoHash(nomeArquivo, cliente);
 		
 	}
 
@@ -338,7 +337,7 @@ public class AplicacaoCliente {
 					if (caminhoArquivo != null) {
 						testeLatencia.testeSalvarArquivo(caminhoArquivo);
 					} else {
-						System.out.println("Opção inválida!");
+						System.out.println("Opcao invalida!");
 					}
 					
 					break;
@@ -347,19 +346,19 @@ public class AplicacaoCliente {
 					if (caminhoArquivo != null) {
 						testeLatencia.testeRemoverArquivo(caminhoArquivo);
 					} else {
-						System.out.println("Opção inválida!");
+						System.out.println("Opcao invalida!");
 					}
 					
 					break;
 				default:
-					System.out.println("Opção invalida!");
+					System.out.println("Opcao invalida!");
 					break;
 				}
 			} else {
-				System.out.println("Opção invalida!");
+				System.out.println("Opcao invalida!");
 			}
 		} else {
-			System.out.println("Número de requisições inválido!");
+			System.out.println("Nuumero de requisicoes invalido!");
 		}
 			
 	}
@@ -374,7 +373,7 @@ public class AplicacaoCliente {
 		String comando;
 		int numeroReq;
 		
-		System.out.println(" ---------- Escolha a quantidade de requisições do teste ----------");	
+		System.out.println(" ---------- Escolha a quantidade de Requisicoes do teste ----------");	
 		System.out.println(" ");
 		System.out.print("Quantidade -> ");
 		comando = leitor.nextLine();
@@ -383,7 +382,7 @@ public class AplicacaoCliente {
 				numeroReq = Integer.parseInt(comando.split(" ")[0]);
 				return numeroReq;
 			} catch (Exception e) {
-				System.out.println("Número de requisições inválido!");
+				System.out.println("Número de Requisicoes invalido!");
 			}		
 		}
 		return 0;
@@ -399,12 +398,12 @@ public class AplicacaoCliente {
 		String comando;
 		int opcaoTeste = 0;
 		
-		System.out.println(" ---------- Escolha a opção do teste ----------");
+		System.out.println(" ---------- Escolha a opcao do teste ----------");
 		System.out.println("1 -> teste de leitura de arquivos e diretorios");	
 		System.out.println("2 -> teste de salvamento de arquivos");	
-		System.out.println("3 -> teste de remoção de arquivos");	
+		System.out.println("3 -> teste de remocao de arquivos");	
 		System.out.println(" ");
-		System.out.print("Opção -> ");
+		System.out.print("opcao -> ");
 		comando = leitor.nextLine();
 		if (!comando.isEmpty()) {
 			try {
@@ -430,7 +429,7 @@ public class AplicacaoCliente {
 			
 		System.out.println(" ---------- Escolha o arquivo a ser utilizado no teste ----------");
 		System.out.println("1 -> arquivo pequeno (~ 1 Kb)");	
-		System.out.println("2 -> arquivo médio (~ 1 Mb)");	
+		System.out.println("2 -> arquivo medio (~ 1 Mb)");	
 		System.out.println("3 -> arquivo grande (~ 10 Mb)");	
 		System.out.println(" ");
 		System.out.print("Arquivo -> ");

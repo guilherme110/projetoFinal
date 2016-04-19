@@ -24,4 +24,7 @@ public class Constantes {
 	public static final int STORAGE_REMOVE_ARQUIVO	       = 16;
 	public static final int STORAGE_BUSCA_ARQUIVO		   = 17;
 	public static final int STORAGE_CADASTRO_TABELASTORAGE = 18;
+	
+	/*Opçãlo de Warm Up default do sistema*/
+	public static final int WARM_UP_DEFAULT	= 50;
 }

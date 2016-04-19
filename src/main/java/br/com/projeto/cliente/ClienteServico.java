@@ -14,6 +14,7 @@ import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.MapDiretorio;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
+import br.com.projeto.utils.Seguranca;
 
 /**Classe de serviços da aplicação do cliente.
  * Cria um objeto do tipo mapDiretorio responsável pela serialização e 
@@ -151,7 +152,8 @@ public class ClienteServico {
 
 	//FIXME: Implementar mecanismo de ROOLBACK e verificar se arquivo existe no diretorio antes de salvar
 	/**Serviço para salvar um no arquivo.
-	 * Cria um objeto do tipo arquivo e realiza algumas formatações para pegar a extensão do arquivo.
+	 * Cria um objeto do tipo arquivo e seta o nome e tamanho do arquivo.
+	 * Cria um inputStream para ler o arquivo em bytes e gerar o código hash do arquivo.
 	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
 	 * Caso a lista não seja vazia, serializa o arquivo a ser enviado e varre a lista
 	 * disparando uma thread para cada storage que o arquivo vai ser salvo.
@@ -169,8 +171,11 @@ public class ClienteServico {
 		
 		novoArquivo.setNomeArquivo(arquivo.getName());
 		novoArquivo.setTamanhoArquivo(arquivo.length());
-
 		try {
+			FileInputStream inputArquivo = new FileInputStream(arquivo);
+			novoArquivo.setCodigoHash(Seguranca.geraHashArquivo(inputArquivo));
+			inputArquivo.close();
+			
 			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {		
 				for (Storage storage : listaStorages) {
@@ -183,8 +188,9 @@ public class ClienteServico {
 				
 				//aguarda todas as Thread's serem finalizadas e
 				//salva os dados estatisticos.
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i < count; i++) {
 					thread[i].join();
+				}
 			} else {
 				System.out.println("Erro ao salvar o arquivo nos storages!");
 			}
@@ -241,7 +247,63 @@ public class ClienteServico {
 		}			
 	}
 	
-	/**Serviço que lê um arquivo dos storages.
+	/**Serviço que lê um arquivo dos storages utilizando hash.
+	 * Primeiramente verifica se o arquivo solicitado existe no diretório.
+	 * Caso encontre o arquivo, busca a lista de storages que esse arquivo está salvo.
+	 * Em seguida baixa o arquivo de cada um dos storages da lista, baixando um de cada vez
+	 * Compara o hash do arquivo baixado, com o hash esperado
+	 * 		- Caso os hash's sejam iguais, chama a função trataArquivos para salvas o arquivo e remove os arquivos temporários
+	 * 		- Caso sejam diferentes, baixa o próximo arquivo, até o final da lista de storages.
+	 * 
+	 * @param nomeArquivo nome do arquivo a ser lido.
+	 * @param cliente dados do cliente.
+	 */
+	public boolean baixaArquivoHash(String nomeArquivo, Cliente cliente) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Arquivo arquivo = new Arquivo();
+		ComunicacaoClienteStorage comunicacaoClienteStorage = new ComunicacaoClienteStorage();
+		ArrayList<String> listaLocalArquivosTemp = new ArrayList<String>();
+		
+		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
+		if (arquivo != null) {
+			try {
+				listaStorages = mapDiretorio.buscaStorages(arquivo);
+				if (CollectionUtils.isNotEmpty(listaStorages)) {
+					for (Storage storage : listaStorages) {
+						comunicacaoClienteStorage.buscaArquivoStorage(storage, arquivo, cliente.getLocalArmazenamento());
+						String localArquivoTemp = cliente.getLocalArmazenamento() + 
+								storage.getIdStorage() + arquivo.getNomeArquivo();
+						listaLocalArquivosTemp.add(localArquivoTemp);
+						
+						FileInputStream inputArquivo = new FileInputStream(localArquivoTemp);
+						if (arquivo.getCodigoHash().equals(Seguranca.geraHashArquivo(inputArquivo))) {
+							trataArquivos(listaLocalArquivosTemp, cliente.getLocalArmazenamento(), 
+										arquivo.getNomeArquivo(), localArquivoTemp);	
+							
+							System.out.println("Arquivo recebido sem modificações.");
+							System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
+							inputArquivo.close();
+							return true;
+						}
+						inputArquivo.close();	
+					}
+					System.out.println("Arquivo danificado ou modificado pelo storage!");
+				} else {
+					System.out.println("Erro ao verificar os storages com o arquivo!");
+				}
+			} catch (Exception e) {
+				System.out.println("Erro ao ler o arquivo nos storages!");
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("Arquivo não existe nesse diretório!");
+		}	
+		deletaArquivosTemporarios(listaLocalArquivosTemp);
+		return false;
+	}
+	
+	
+	/**Serviço que lê um arquivo dos storages utilizando thread's.
 	 * Primeiramente verifica se o arquivo solicitado existe no diretório.
 	 * Caso encontre o arquivo, busca a lista de storages que esse arquivo está salvo.
 	 * Em seguida dispara uma thread para cada storage da lista, enviando os 
@@ -250,12 +312,11 @@ public class ClienteServico {
 	 * dos arquivos enviados pelos storages.
 	 * Caso o arquivo esteja integro, salvo o arquivo no diretório do cliente no próprio método 
 	 * que verifica a integridade do arquivo.
-	 * Calcula o tempo de resposta da requisição.
 	 * 
 	 * @param nomeArquivo nome do arquivo a ser lido.
 	 * @param cliente dados do cliente.
 	 */
-	public void baixaArquivo(String nomeArquivo, Cliente cliente) {
+	public void baixaArquivoThread(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
@@ -267,7 +328,7 @@ public class ClienteServico {
 			try {
 				listaStorages = mapDiretorio.buscaStorages(arquivo);
 				if (CollectionUtils.isNotEmpty(listaStorages)) {
-					ArrayList<String> listaLocalNovoArquivo = new ArrayList<String>();
+					ArrayList<String> listaLocalArquivosTemp = new ArrayList<String>();
 					for (Storage storage : listaStorages) {
 						String localNovoArquivo = cliente.getLocalArmazenamento() + 
 								storage.getIdStorage() + arquivo.getNomeArquivo();
@@ -276,7 +337,7 @@ public class ClienteServico {
 						thread[count] = new Thread(comunicacaoClienteStorage[count]);
 						
 						thread[count].start();
-						listaLocalNovoArquivo.add(localNovoArquivo);
+						listaLocalArquivosTemp.add(localNovoArquivo);
 						count++;
 					}
 					
@@ -286,7 +347,7 @@ public class ClienteServico {
 					}
 					
 					System.out.println("Verificando integridade do arquivo...");
-					if (verificaIntegridadeDados(arquivo, listaLocalNovoArquivo, cliente)) {
+					if (verificaIntegridadeDados(arquivo, listaLocalArquivosTemp, cliente)) {
 						System.out.println("Arquivo recebido sem modificações.");
 						System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
 					} else {
@@ -318,24 +379,23 @@ public class ClienteServico {
 	 * No fim apaga os arquivos temporários.
 	 * 
 	 * @param arquivo dados do arquivo a ser verificado.
-	 * @param listaLocalNovoArquivo lista com o local dos arquivos baixados dos storages.
+	 * @param listaLocalArquivosTemp lista com o local dos arquivos baixados dos storages.
 	 * @param cliente dados do cliente.
 	 * @return boolean com status da verificação.
 	 */
-	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalNovoArquivo,
+	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalArquivosTemp,
 			Cliente cliente) {
 		int numeroFValido = cliente.getNumeroStorages() - cliente.getfNumeroFalhas();
 		int arquivosIguais = 1;
-		int comparacaoAux[][] = new int [listaLocalNovoArquivo.size()] [listaLocalNovoArquivo.size()];
-		File arquivoFisico = null;
-		
+		int comparacaoAux[][] = new int [listaLocalArquivosTemp.size()] [listaLocalArquivosTemp.size()];
+
 		try {
-			for (int i = 0; i < listaLocalNovoArquivo.size(); i++) {
-				String arquivoAux1 = listaLocalNovoArquivo.get(i);
+			for (int i = 0; i < listaLocalArquivosTemp.size(); i++) {
+				String arquivoAux1 = listaLocalArquivosTemp.get(i);
 				
-				for (int j = 0; j < listaLocalNovoArquivo.size(); j++) {
+				for (int j = 0; j < listaLocalArquivosTemp.size(); j++) {
 					if (i != j) {
-						String arquivoAux2 = listaLocalNovoArquivo.get(j);
+						String arquivoAux2 = listaLocalArquivosTemp.get(j);
 						
 						FileInputStream fis1 = new FileInputStream(arquivoAux1);
 						FileInputStream fis2 = new FileInputStream(arquivoAux2);
@@ -349,46 +409,56 @@ public class ClienteServico {
 								comparacaoAux[i][j] = ARQUIVOS_DIFERENTES;
 								comparacaoAux[j][i] = ARQUIVOS_DIFERENTES;
 							}
+							fis1.close();
+							fis2.close();
 						} else if (comparacaoAux[j][i] == ARQUIVOS_IGUAIS) {
 							arquivosIguais++;
 						}
 						
 						if (arquivosIguais == numeroFValido) {	
-							arquivoFisico = new File(arquivoAux1);
-							if (arquivoFisico.exists()) {
-								File novoNome = new File(cliente.getLocalArmazenamento() + arquivo.getNomeArquivo());
-								arquivoFisico.renameTo(novoNome);
-								deletaArquivosTemporarios(listaLocalNovoArquivo);
-								
-								fis1.close();
-								fis2.close();
-							}
-							
+							trataArquivos(listaLocalArquivosTemp, cliente.getLocalArmazenamento(), 
+									arquivo.getNomeArquivo(), arquivoAux1);	
 							return true;
 						}
-						fis1.close();
-						fis2.close();
 					}
 				}
 				arquivosIguais = 1;
 			}	
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 		
+		deletaArquivosTemporarios(listaLocalArquivosTemp);
 		return false;
+	}
+
+	/**Método para tratar os arquivos temporários
+	 * 
+	 * @param listaLocalArquivosTemp lista com os arquivos temporários
+	 * @param localArmazenamento local de armazenamento, dos arquivos temporários
+	 * @param nomeArquivo nome do arquivo tratado
+	 * @param localArquivoIntegro local de salvamento do arquivo integro
+	 */
+	private void trataArquivos(ArrayList<String> listaLocalArquivosTemp,
+			String localArmazenamento, String nomeArquivo, String localArquivoIntegro) {
+		File arquivoIntegro = new File(localArquivoIntegro);
+		File novoNome = new File(localArmazenamento + nomeArquivo);
+		
+		if (arquivoIntegro.exists()) {
+			arquivoIntegro.renameTo(novoNome);
+			deletaArquivosTemporarios(listaLocalArquivosTemp);
+		}
 	}
 
 	/**
 	 * Método para deletar os arquivos temporários
-	 * @param listaLocalNovoArquivo lista  de arquivos temporários
+	 * @param listaLocalArquivosTemp lista  de arquivos temporários
 	 */
 	private void deletaArquivosTemporarios(
-			ArrayList<String> listaLocalNovoArquivo) {
+			ArrayList<String> listaLocalArquivosTemp) {
 		// TODO Auto-generated method stub
 		
-		for (String localArquivoTmp : listaLocalNovoArquivo) {
+		for (String localArquivoTmp : listaLocalArquivosTemp) {
 			File arqTmp = new File(localArquivoTmp);
 			if(arqTmp.exists()) {
 				arqTmp.delete();
