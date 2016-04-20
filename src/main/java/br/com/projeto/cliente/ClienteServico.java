@@ -93,7 +93,7 @@ public class ClienteServico {
 		
 	
 	/**Serviço que remove um diretório.
-	 * Valida o nome do novo diretório e chama o metódo de criação de diretório nos servidores.
+	 * Valida o nome do novo diretório e chama o metódo de criação de diretório nos servidThread thread[] = new Thread[cliente.getNumeroStorages()];ores.
 	 * 
 	 * @param nomeNovoDiretorio
 	 * @param cliente
@@ -150,53 +150,93 @@ public class ClienteServico {
 		System.out.println(" ");
 	}
 
-	//FIXME: Implementar mecanismo de ROOLBACK e verificar se arquivo existe no diretorio antes de salvar
+	//FIXME: Implementar mecanismo de ROOLBACK em caso de erro de envio do arquivo para os Storages
 	/**Serviço para salvar um no arquivo.
-	 * Cria um objeto do tipo arquivo e seta o nome e tamanho do arquivo.
-	 * Cria um inputStream para ler o arquivo em bytes e gerar o código hash do arquivo.
-	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
-	 * Caso a lista não seja vazia, serializa o arquivo a ser enviado e varre a lista
-	 * disparando uma thread para cada storage que o arquivo vai ser salvo.
-	 * Calcula o tempo de resposta da requisição.
+	 * Verifica se o arquivo já existe no diretorio atual do cliente
+	 * Caso não exista, salva primeiramente o arquivo no servidor de meta dados
+	 * Em caso de sucesso (lista de melhores storages não vazia) salva os arquivos nos storages
 	 *
 	 * @param arquivo físico a ser enviado
 	 * @param cliente dados do cliente atual
 	 */
-	public void salvaArquivo(File arquivo, Cliente cliente) {
+	public void salvaArquivo(File arquivoFisico, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
-		Arquivo novoArquivo = new Arquivo();
-		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
-		Thread thread[] = new Thread[cliente.getNumeroStorages()];
-		int count = 0;
+		Arquivo arquivoLogico = new Arquivo();
+			
+		if (mapDiretorio.buscaArquivo(arquivoFisico.getName(), cliente.getDiretorioClienteAtual()) == null) {
+			salvaArquivoServidorMetaDados(arquivoLogico, cliente, arquivoFisico, listaStorages);
+			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
+				salvaArquivoStorage(listaStorages, arquivoLogico, arquivoFisico, cliente);
+			} else {
+				System.out.println("Erro ao salvar o arquivo no servidor de meta dados!");
+			}
+		} else {
+			System.out.println("\nJá existe um arquivo com esse nome, nesse diretorio!");
+		}
+			
+	}
+	
+	/**Método para salvar o arquivo no servidor de meta dados
+	 * Seta os atributos do objeto do arquivo.
+	 * Em seguida gera o código hash, a ser usado no arquivo
+	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
+	 * 
+	 * @param novoArquivo arquivo lógico a ser salvo
+	 * @param cliente dados do cliente da aplicação
+	 * @param arquivo arquivo físico a ser salvo
+	 * @param listaStorages lista com os melhores storages
+	 */
+	public void salvaArquivoServidorMetaDados(Arquivo novoArquivo, Cliente cliente, 
+			File arquivo, List<Storage> listaStorages) {
+		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
 		
 		novoArquivo.setNomeArquivo(arquivo.getName());
 		novoArquivo.setTamanhoArquivo(arquivo.length());
+		
 		try {
 			FileInputStream inputArquivo = new FileInputStream(arquivo);
 			novoArquivo.setCodigoHash(Seguranca.geraHashArquivo(inputArquivo));
 			inputArquivo.close();
+			listaStoragesTemp = mapDiretorio.salvaArquivo(novoArquivo, cliente);
 			
-			listaStorages = mapDiretorio.salvaArquivo(novoArquivo, cliente);
-			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {		
-				for (Storage storage : listaStorages) {
-					comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
-							arquivo, novoArquivo, Constantes.STORAGE_SALVA_ARQUIVO);
-					thread[count] = new Thread(comunicacaoClienteStorage[count]);
-					thread[count].start();
-					count++;
-				}
-				
-				//aguarda todas as Thread's serem finalizadas e
-				//salva os dados estatisticos.
-				for (int i = 0; i < count; i++) {
-					thread[i].join();
-				}
-			} else {
-				System.out.println("Erro ao salvar o arquivo nos storages!");
+			listaStorages.clear();
+			listaStorages.addAll(listaStoragesTemp);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**Método para salvar o arquivo nos storages.
+	 * Varre a lista de storages disparando uma thread para cada storage que o arquivo vai ser salvo.
+	 * 
+	 * @param novoArquivo arquivo lógico a ser salvo
+	 * @param cliente dados do cliente da aplicação
+	 * @param arquivo arquivo físico a ser salvo
+	 * @param listaStorages lista com os melhores storages
+	 */
+	public void salvaArquivoStorage(List<Storage> listaStorages, Arquivo novoArquivo, 
+			File arquivo, Cliente cliente) {
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getNumeroStorages()];
+		int count = 0;
+		
+		try {
+			for (Storage storage : listaStorages) {
+				comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
+						arquivo, novoArquivo, Constantes.STORAGE_SALVA_ARQUIVO);
+				thread[count] = new Thread(comunicacaoClienteStorage[count]);
+				thread[count].start();
+				count++;
+			}
+			
+			//aguarda todas as Thread's serem finalizadas
+			for (int i = 0; i < count; i++) {
+				thread[i].join();
 			}
 		} catch (Exception e) {
-			System.out.println("Erro ao salvar o arquivo!");
+			e.printStackTrace();
 		}
+		
 	}
 	
 	/**Serviço para remover um arquivo.
@@ -210,8 +250,7 @@ public class ClienteServico {
 	 * @param nomeArquivo nome do arquivo a ser removido
 	 * @param cliente dados do cliente
 	 */
-	
-	public void removeArquivo(String nomeArquivo, Cliente cliente) {
+	public void removeArquivo2(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
@@ -247,6 +286,57 @@ public class ClienteServico {
 		}			
 	}
 	
+	public void removeArquivo(String nomeArquivo, Cliente cliente) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Arquivo arquivo = new Arquivo();
+		
+		if (mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual()) != null) {
+			removeArquivoServidorMetaDados(arquivo, cliente, listaStorages);
+			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
+				removeArquivoStorage(listaStorages, arquivo, cliente);
+			} else {
+				System.out.println("Erro ao remover o arquivo do servidor de meta dados!");
+			}
+		} else {
+			System.out.println("\nNão existe esse arquivo nesse diretorio!");
+		}
+			
+	}
+	
+	private void removeArquivoServidorMetaDados(Arquivo arquivo,
+			Cliente cliente, List<Storage> listaStorages) {
+		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
+		
+		listaStoragesTemp = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
+		listaStorages.clear();
+		listaStorages.addAll(listaStoragesTemp);
+	}
+
+	private void removeArquivoStorage(List<Storage> listaStorages,
+			Arquivo arquivo, Cliente cliente) {
+		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
+		Thread thread[] = new Thread[cliente.getNumeroStorages()];
+		int count = 0;
+		
+		try {
+			for (Storage storage : listaStorages) {
+				comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
+						arquivo, Constantes.STORAGE_REMOVE_ARQUIVO, cliente.getLocalArmazenamento());
+				thread[count] = new Thread(comunicacaoClienteStorage[count]);
+				thread[count].start();
+				count++;
+			}
+			
+			//aguarda todas as Thread's serem finalizadas
+			for (int i = 0; i < count; i++) {
+				thread[i].join();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro ao remover o arquivo dos storages!");
+		}
+	}
+
 	/**Serviço que lê um arquivo dos storages utilizando hash.
 	 * Primeiramente verifica se o arquivo solicitado existe no diretório.
 	 * Caso encontre o arquivo, busca a lista de storages que esse arquivo está salvo.

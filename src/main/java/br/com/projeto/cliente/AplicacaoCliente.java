@@ -335,7 +335,7 @@ public class AplicacaoCliente {
 				case 2:
 					caminhoArquivo = verificaOpcaoArquivo();
 					if (caminhoArquivo != null) {
-						testeLatencia.testeSalvarArquivo(caminhoArquivo);
+						testeLatencia.testeSalvarArquivo(caminhoArquivo, numeroReq);
 					} else {
 						System.out.println("Opcao invalida!");
 					}

@@ -3,12 +3,15 @@ package br.com.projeto.testes;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
 import br.com.projeto.cliente.Cliente;
 import br.com.projeto.cliente.ClienteServico;
 import br.com.projeto.diretorio.Arquivo;
+import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 import br.com.projeto.utils.Estatistica;
 
@@ -78,7 +81,7 @@ public class LatenciaCliente {
 	 * Por último, grava os resultados em log.
 	 * 
 	 */
-	public void testeSalvarArquivo(String nomeArquivo) {
+	public void testeSalvarArquivo2(String nomeArquivo) {
 		File arquivoTemp = null;
 		try {
 			arquivoTemp = File.createTempFile(nomeArquivo + "-", ".tmp");
@@ -112,6 +115,52 @@ public class LatenciaCliente {
 			System.out.println("");
 		}
 		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
+	}
+	
+	public void testeSalvarArquivo(String nomeArquivo, int numeroReq) {
+		Estatistica estatisticaMetaDados = new Estatistica(numeroReq);
+		Estatistica estatisticaStorage = new Estatistica(numeroReq);
+		Long horarioReq, horarioResp = 0L;
+		File arquivoFisicoTemp = null;
+		Arquivo arquivoLogicoTemp = new Arquivo();
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		
+		try {
+			arquivoFisicoTemp = File.createTempFile(nomeArquivo + "-", ".tmp");
+			arquivoFisicoTemp.deleteOnExit();
+			FileOutputStream out = new FileOutputStream(arquivoFisicoTemp);
+			InputStream caminhoArquivo = this.getClass().getResourceAsStream("/file/" + nomeArquivo + ".txt");
+			IOUtils.copy(caminhoArquivo, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		//Warm UP
+		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
+			this.getClienteServico().salvaArquivoServidorMetaDados(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		}
+		
+		this.getEstatistica().clear();
+		
+		for (int i = 0; i < numeroReq; i++) {
+			horarioReq = System.nanoTime();
+			this.getClienteServico().salvaArquivoServidorMetaDados(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			horarioResp = System.nanoTime();
+			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
+			
+			horarioReq = System.nanoTime();
+			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			horarioResp = System.nanoTime();
+			estatisticaStorage.getSt().store(horarioResp - horarioReq);
+			
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		}
+		
+		estatisticaMetaDados.salvaDados(Constantes.SALVA_ARQUIVO, arquivoLogicoTemp);
+		estatisticaStorage.salvaDados(Constantes.STORAGE_SALVA_ARQUIVO, arquivoLogicoTemp);
 	}
 	
 	/**Método para testar o serviço de remover arquivo

@@ -54,7 +54,12 @@ public class Estatistica {
 		
 		switch (operacao) {
 		case Constantes.SALVA_ARQUIVO:
-			mensagemSaida.append("Operacao: Salvar arquivo\n");
+			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados\n");
+			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
+			break;
+		case Constantes.STORAGE_SALVA_ARQUIVO:
+			mensagemSaida.append("Operacao: Salvar arquivo nos Storages\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
