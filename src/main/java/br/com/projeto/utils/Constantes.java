@@ -25,6 +25,12 @@ public class Constantes {
 	public static final int STORAGE_BUSCA_ARQUIVO		   = 17;
 	public static final int STORAGE_CADASTRO_TABELASTORAGE = 18;
 	
-	/*Opçãlo de Warm Up default do sistema*/
-	public static final int WARM_UP_DEFAULT	= 50;
+	/*Opçãlo de teste do sistema*/
+	public static final int TESTE_SALVA_ARQUIVO           = 1;
+	public static final int TESTE_REMOVE_ARQUIVO          = 2;
+	public static final int TESTE_LEITURA_ARQUIVO_THREAD  = 3;
+	public static final int TESTE_LEITURA_ARQUIVO_HASH    = 4;
+	public static final int TESTE_SALVA_ARQUIVO_METADADOS = 5;
+	public static final int TESTE_SALVA_ARQUIVO_STORAGE   = 6;
+	public static final int WARM_UP_DEFAULT	              = 50;
 }

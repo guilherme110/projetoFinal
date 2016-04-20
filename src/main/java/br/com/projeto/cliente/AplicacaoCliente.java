@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 import bftsmart.tom.ServiceProxy;
 import br.com.projeto.testes.LatenciaCliente;
+import br.com.projeto.utils.Constantes;
 import br.com.projeto.utils.Formatacao;
 
 
@@ -326,13 +327,10 @@ public class AplicacaoCliente {
 		if (numeroReq != 0) {
 			opcaoTeste = verificaOpcaoTeste();
 			if (opcaoTeste != 0) {
-				LatenciaCliente testeLatencia = new LatenciaCliente(numeroReq, cliente, clienteServico);
+				LatenciaCliente testeLatencia = new LatenciaCliente(cliente, clienteServico);
 				
 				switch (opcaoTeste) {
-				case 1:
-					testeLatencia.testeListarDados();
-					break;
-				case 2:
+				case Constantes.TESTE_SALVA_ARQUIVO:
 					caminhoArquivo = verificaOpcaoArquivo();
 					if (caminhoArquivo != null) {
 						testeLatencia.testeSalvarArquivo(caminhoArquivo, numeroReq);
@@ -341,10 +339,28 @@ public class AplicacaoCliente {
 					}
 					
 					break;
-				case 3:
+				case Constantes.TESTE_REMOVE_ARQUIVO:
 					caminhoArquivo = verificaOpcaoArquivo();
 					if (caminhoArquivo != null) {
-						testeLatencia.testeRemoverArquivo(caminhoArquivo);
+						testeLatencia.testeRemoverArquivo(caminhoArquivo, numeroReq);
+					} else {
+						System.out.println("Opcao invalida!");
+					}
+					
+					break;
+				case Constantes.TESTE_LEITURA_ARQUIVO_THREAD:
+					caminhoArquivo = verificaOpcaoArquivo();
+					if (caminhoArquivo != null) {
+						testeLatencia.testeLeituraArquivoThread(caminhoArquivo, numeroReq);
+					} else {
+						System.out.println("Opcao invalida!");
+					}
+					
+					break;
+				case Constantes.TESTE_LEITURA_ARQUIVO_HASH:
+					caminhoArquivo = verificaOpcaoArquivo();
+					if (caminhoArquivo != null) {
+						testeLatencia.testeLeituraArquivoHash(caminhoArquivo, numeroReq);
 					} else {
 						System.out.println("Opcao invalida!");
 					}
@@ -398,10 +414,11 @@ public class AplicacaoCliente {
 		String comando;
 		int opcaoTeste = 0;
 		
-		System.out.println(" ---------- Escolha a opcao do teste ----------");
-		System.out.println("1 -> teste de leitura de arquivos e diretorios");	
-		System.out.println("2 -> teste de salvamento de arquivos");	
-		System.out.println("3 -> teste de remocao de arquivos");	
+		System.out.println(" ---------- Escolha a opcao do teste ----------");	
+		System.out.println("1 -> teste de salvamento de arquivos");	
+		System.out.println("2 -> teste de remocao de arquivos");
+		System.out.println("3 -> teste de leitura (download) de arquivos sem hash");
+		System.out.println("4 -> teste de leitura (download) de arquivos com hash");
 		System.out.println(" ");
 		System.out.print("opcao -> ");
 		comando = leitor.nextLine();

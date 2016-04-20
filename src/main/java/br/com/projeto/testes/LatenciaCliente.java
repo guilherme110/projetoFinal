@@ -21,109 +21,24 @@ import br.com.projeto.utils.Estatistica;
  *
  */
 public class LatenciaCliente {
-
-	private Estatistica estatistica;
 	private ClienteServico clienteServico;
 	private Cliente clienteTeste;
-	private long horarioReq;
-	private long horarioResp;
 	
 	/**Construtor default da classe
 	 * 
 	 */
-	public LatenciaCliente(int numeroReq, Cliente cliente, ClienteServico clienteServico) {
-		this.estatistica = new Estatistica(numeroReq);
-		this.estatistica.clear();
+	public LatenciaCliente(Cliente cliente, ClienteServico clienteServico) {
 		this.clienteServico = clienteServico;
 		this.clienteTeste = cliente;
-		this.horarioReq = 0L;
-		this.horarioResp = 0L;
 	}
 	
-	/**Método para testar o serviço de listar dados
-	 * Primeiramente realiza o Warm UP para aquecer o sistema.
-	 * Em seguida salva o horário da requisição, realiza a requisição e salva o horário da resposta.
-	 * Armazena o resultado utilizando a biblioteca Estatistica.
-	 * Por último, grava os resultados em log.
+	/**Método para gerar um arquivo temporário, utilizado para os testes.
 	 * 
+	 * @param nomeArquivo nome do arquivo selecionado para os testes.
+	 * @return arquivo físico temporário.
 	 */
-	public void testeListarDados() {
-		
-		this.getEstatistica().clear();
-		
-		//Warm UP
-		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().listaDados(this.getClienteTeste());
-		}
-		
-		for (int i = 0; i < this.getEstatistica().getNumeroReq(); i++) {
-			
-			this.setHorarioReq(System.nanoTime());
-			this.getClienteServico().listaDados(this.getClienteTeste());
-			this.setHorarioResp(System.nanoTime());
-			this.getEstatistica().getSt().store(this.getHorarioResp() - this.getHorarioReq());
-		}
-		this.getEstatistica().salvaDados(Constantes.LISTA_DADOS, null);
-		
-		for (int i = 0; i < 50; i++) {
-			System.out.println("");
-		}
-		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
-	}
-	
-	/**Método para testar o serviço de salvar arquivo
-	 * Primeiramente cria um arquivo TMP para ser utilizado no teste de acordo com o arquivo escolhido
-	 * Não é possível utilizar o arquivo direto em uma aplicação .jar é necessário criar um arquivo TMP.
-	 * Em seguida realiza o Warm UP para aquecer o sistema.
-	 * Logo salva o horário da requisição, realiza a requisição e salva o horário da resposta.
-	 * Armazena o resultado utilizando a biblioteca Estatistica.
-	 * Remove o arquivo do sistema.
-	 * Por último, grava os resultados em log.
-	 * 
-	 */
-	public void testeSalvarArquivo2(String nomeArquivo) {
-		File arquivoTemp = null;
-		try {
-			arquivoTemp = File.createTempFile(nomeArquivo + "-", ".tmp");
-			arquivoTemp.deleteOnExit();
-			FileOutputStream out = new FileOutputStream(arquivoTemp);
-			InputStream caminhoArquivo = this.getClass().getResourceAsStream("/file/" + nomeArquivo + ".txt");
-			IOUtils.copy(caminhoArquivo, out);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null, null);
-		this.getEstatistica().clear();
-		
-		//Warm UP
-		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivo(arquivoTemp, this.getClienteTeste());
-			this.getClienteServico().removeArquivo(arquivoTemp.getName(), this.getClienteTeste());
-		}
-		
-		for (int i = 0; i < this.getEstatistica().getNumeroReq(); i++) {	
-			this.setHorarioReq(System.nanoTime());
-			this.getClienteServico().salvaArquivo(arquivoTemp, this.getClienteTeste());
-			this.setHorarioResp(System.nanoTime());
-			this.getEstatistica().getSt().store(this.getHorarioResp() - this.getHorarioReq());
-			
-			this.getClienteServico().removeArquivo(arquivoTemp.getName(), this.getClienteTeste());
-		}
-		this.getEstatistica().salvaDados(Constantes.SALVA_ARQUIVO, arqTemp);
-		
-		for (int i = 0; i < 50; i++) {
-			System.out.println("");
-		}
-		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
-	}
-	
-	public void testeSalvarArquivo(String nomeArquivo, int numeroReq) {
-		Estatistica estatisticaMetaDados = new Estatistica(numeroReq);
-		Estatistica estatisticaStorage = new Estatistica(numeroReq);
-		Long horarioReq, horarioResp = 0L;
+	public File geraArquivoTemp(String nomeArquivo) {
 		File arquivoFisicoTemp = null;
-		Arquivo arquivoLogicoTemp = new Arquivo();
-		List<Storage> listaStorages = new ArrayList<Storage>();
 		
 		try {
 			arquivoFisicoTemp = File.createTempFile(nomeArquivo + "-", ".tmp");
@@ -134,6 +49,27 @@ public class LatenciaCliente {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return arquivoFisicoTemp;
+	}
+	
+	/**Método para testes de salvamento de arquivos.
+	 * Primeiramente cria-se um arquivo temporário que será utilizado nos testes.
+	 * Criou-se duas variaveis para armazenar os dados estatisticos, uma armazena
+	 * os dados das requisições para os servidores de metadados e a outra armazena as requisições aos storages.
+	 * Em seguida realiza o warm UP para aquecer o sistema.
+	 * Logo realiza os testes, salvando primeiramente os dados no servidor de meta dados e em seguida no storages.
+	 * Por último, salva os resultados em log. 
+	 * 
+	 * @param nomeArquivo nome do arquivo escolhido para os testes.
+	 * @param numeroReq número de requisições escolhido para os testes.
+	 */
+	public void testeSalvarArquivo(String nomeArquivo, int numeroReq) {
+		Estatistica estatisticaMetaDados = new Estatistica(numeroReq);
+		Estatistica estatisticaStorage = new Estatistica(numeroReq);
+		Long horarioReq, horarioResp = 0L;
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Arquivo arquivoLogicoTemp = new Arquivo();
+		File arquivoFisicoTemp = geraArquivoTemp(nomeArquivo);
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
@@ -142,8 +78,6 @@ public class LatenciaCliente {
 			
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
-		
-		this.getEstatistica().clear();
 		
 		for (int i = 0; i < numeroReq; i++) {
 			horarioReq = System.nanoTime();
@@ -159,8 +93,13 @@ public class LatenciaCliente {
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
 		
-		estatisticaMetaDados.salvaDados(Constantes.SALVA_ARQUIVO, arquivoLogicoTemp);
-		estatisticaStorage.salvaDados(Constantes.STORAGE_SALVA_ARQUIVO, arquivoLogicoTemp);
+		estatisticaMetaDados.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_METADADOS, arquivoLogicoTemp);
+		estatisticaStorage.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_STORAGE, arquivoLogicoTemp);
+		
+		for (int i = 0; i < 50; i++) {
+			System.out.println("");
+		}
+		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
 	}
 	
 	/**Método para testar o serviço de remover arquivo
@@ -172,48 +111,89 @@ public class LatenciaCliente {
 	 * Por último, grava os resultados em log.
 	 * 
 	 */
-	public void testeRemoverArquivo(String nomeArquivo) {
-		File arquivoTemp = null;
-		try {
-			arquivoTemp = File.createTempFile(nomeArquivo, ".tmp");
-			arquivoTemp.deleteOnExit();
-			FileOutputStream out = new FileOutputStream(arquivoTemp);
-			InputStream caminhoArquivo = this.getClass().getResourceAsStream("/file/" + nomeArquivo + ".txt");
-			IOUtils.copy(caminhoArquivo, out);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Arquivo arqTemp = new Arquivo(arquivoTemp.getName(), arquivoTemp.length(), null, null);
-		this.getEstatistica().clear();
+	public void testeRemoverArquivo(String nomeArquivo, int numeroReq) {
+		Estatistica estatistica = new Estatistica(numeroReq);
+		Long horarioReq, horarioResp = 0L;
+		File arquivoFisicoTemp = geraArquivoTemp(nomeArquivo);
+		Arquivo arquivoLogicoTemp = new Arquivo(arquivoFisicoTemp.getName(), arquivoFisicoTemp.length(), null, null);
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivo(arquivoTemp, this.getClienteTeste());
-			this.getClienteServico().removeArquivo(arquivoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
 		
-		for (int i = 0; i < this.getEstatistica().getNumeroReq(); i++) {	
-			this.getClienteServico().salvaArquivo(arquivoTemp, this.getClienteTeste());
-			this.getEstatistica().getSt().store(this.getHorarioResp() - this.getHorarioReq());
+		for (int i = 0; i < numeroReq; i++) {	
+			this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
 			
-			this.setHorarioReq(System.nanoTime());
-			this.getClienteServico().removeArquivo(arquivoTemp.getName(), this.getClienteTeste());
-			this.setHorarioResp(System.nanoTime());
+			horarioReq = System.nanoTime();
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			horarioResp = System.nanoTime();
+			estatistica.getSt().store(horarioResp - horarioReq);
 		}
-		this.getEstatistica().salvaDados(Constantes.REMOVE_ARQUIVO, arqTemp);
+		estatistica.salvaDados(Constantes.TESTE_REMOVE_ARQUIVO, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
 		}
 		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
 	}
-
-	public Estatistica getEstatistica() {
-		return estatistica;
+	
+	public void testeLeituraArquivoThread(String nomeArquivo, int numeroReq) {
+		Estatistica estatistica = new Estatistica(numeroReq);
+		Long horarioReq, horarioResp = 0L;
+		File arquivoFisicoTemp = geraArquivoTemp(nomeArquivo);
+		Arquivo arquivoLogicoTemp = new Arquivo(arquivoFisicoTemp.getName(), arquivoFisicoTemp.length(), null, null);
+		
+		//Warm UP, salva o arquivo temporário para testes.
+		this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
+			this.getClienteServico().baixaArquivoThread(arquivoLogicoTemp.getNomeArquivo(), this.getClienteTeste());
+		}
+		
+		for (int i = 0; i < numeroReq; i++) {
+			horarioReq = System.nanoTime();
+			this.getClienteServico().baixaArquivoThread(arquivoLogicoTemp.getNomeArquivo(), this.getClienteTeste());
+			horarioResp = System.nanoTime();
+			estatistica.getSt().store(horarioResp - horarioReq);
+		}
+	
+		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		estatistica.salvaDados(Constantes.TESTE_LEITURA_ARQUIVO_THREAD, arquivoLogicoTemp);
+		
+		for (int i = 0; i < 50; i++) {
+			System.out.println("");
+		}
+		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
+		
 	}
 
-	public void setEstatistica(Estatistica estatistica) {
-		this.estatistica = estatistica;
+	public void testeLeituraArquivoHash(String nomeArquivo, int numeroReq) {
+		Estatistica estatistica = new Estatistica(numeroReq);
+		Long horarioReq, horarioResp = 0L;
+		File arquivoFisicoTemp = geraArquivoTemp(nomeArquivo);
+		Arquivo arquivoLogicoTemp = new Arquivo(arquivoFisicoTemp.getName(), arquivoFisicoTemp.length(), null, null);
+		
+		//Warm UP, salva o arquivo temporário para testes.
+		this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
+			this.getClienteServico().baixaArquivoHash(arquivoLogicoTemp.getNomeArquivo(), this.getClienteTeste());
+		}
+		
+		for (int i = 0; i < numeroReq; i++) {
+			horarioReq = System.nanoTime();
+			this.getClienteServico().baixaArquivoHash(arquivoLogicoTemp.getNomeArquivo(), this.getClienteTeste());
+			horarioResp = System.nanoTime();
+			estatistica.getSt().store(horarioResp - horarioReq);
+		}
+	
+		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		estatistica.salvaDados(Constantes.TESTE_LEITURA_ARQUIVO_HASH, arquivoLogicoTemp);
+		
+		for (int i = 0; i < 50; i++) {
+			System.out.println("");
+		}
+		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
 	}
 
 	public ClienteServico getClienteServico() {
@@ -230,21 +210,5 @@ public class LatenciaCliente {
 
 	public void setClienteTeste(Cliente clienteTeste) {
 		this.clienteTeste = clienteTeste;
-	}
-
-	public long getHorarioReq() {
-		return horarioReq;
-	}
-
-	public void setHorarioReq(long horarioReq) {
-		this.horarioReq = horarioReq;
-	}
-
-	public long getHorarioResp() {
-		return horarioResp;
-	}
-
-	public void setHorarioResp(long horarioResp) {
-		this.horarioResp = horarioResp;
 	}
 }

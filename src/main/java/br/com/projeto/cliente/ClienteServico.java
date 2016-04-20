@@ -244,48 +244,11 @@ public class ClienteServico {
 	 * Chama o método de busca de arquivo nos servidores.
 	 * Caso o arquivo exista nos servidores, chama o método para remover o arquivo nos servidores e
 	 * esse método retorna uma lista com os storages a serem atualizados.
-	 * Calcula o tempo de resposta da requisição.
-	 * Por último varre a lista e dispara um thread para remover o arquivo de cada storage.
+	 * Por último chama o método que irá removor os arquivos físicos dos storages.
 	 * 
-	 * @param nomeArquivo nome do arquivo a ser removido
-	 * @param cliente dados do cliente
+	 * @param nomeArquivo nome do arquivo a ser removido.
+	 * @param cliente dados do cliente.
 	 */
-	public void removeArquivo2(String nomeArquivo, Cliente cliente) {
-		List<Storage> listaStorages = new ArrayList<Storage>();
-		Arquivo arquivo = new Arquivo();
-		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
-		Thread thread[] = new Thread[cliente.getNumeroStorages()];
-		int count = 0;
-		
-		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
-		if (arquivo != null) {
-			try {
-				listaStorages = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
-				if (CollectionUtils.isNotEmpty(listaStorages)) {
-					for (Storage storage : listaStorages) {
-						comunicacaoClienteStorage[count] = new ComunicacaoClienteStorage(storage, 
-								arquivo, Constantes.STORAGE_REMOVE_ARQUIVO, cliente.getLocalArmazenamento());
-						thread[count] = new Thread(comunicacaoClienteStorage[count]);
-						thread[count].start();
-						count++;
-					}	
-					
-					//aguarda todas as Thread's serem finalizadas e
-					//salva os dados estatisticos.
-					for (int i = 0; i < count; i++) {
-						thread[i].join();
-					}
-				} else {
-					System.out.println("Erro ao verificar os storages com o arquivo!");
-				}
-			} catch (Exception e) {
-				System.out.println("Erro ao apagar o arquivo!");
-			}
-		} else {
-			System.out.println("Arquivo não existe nesse diretório!");
-		}			
-	}
-	
 	public void removeArquivo(String nomeArquivo, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
@@ -304,6 +267,12 @@ public class ClienteServico {
 			
 	}
 	
+	/**Método para remover um arquivo do servidor de meta dados.
+	 * 
+	 * @param arquivo arquivo lógico para remoção.
+	 * @param cliente dados do cliente da aplicação.
+	 * @param listaStorages lista de storages onde se encontra o arquivo.
+	 */
 	private void removeArquivoServidorMetaDados(Arquivo arquivo,
 			Cliente cliente, List<Storage> listaStorages) {
 		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
@@ -313,6 +282,14 @@ public class ClienteServico {
 		listaStorages.addAll(listaStoragesTemp);
 	}
 
+	/**Método para remover um arquivo dos storages
+	 * Dispara uma thread para cada storage da lista, para remoção do arquivo do storage.
+	 * Aguarda todas as thread's serem finalizadas (join).
+	 * 
+	 * @param listaStorages lista de storagess que contem o arquivo.
+	 * @param arquivo dados do arquivo lógico a ser removido.
+	 * @param cliente dados do cliente atual da aplicação.
+	 */
 	private void removeArquivoStorage(List<Storage> listaStorages,
 			Arquivo arquivo, Cliente cliente) {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];

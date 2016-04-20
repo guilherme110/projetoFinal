@@ -53,26 +53,28 @@ public class Estatistica {
 		Formatacao format = new Formatacao();
 		
 		switch (operacao) {
-		case Constantes.SALVA_ARQUIVO:
+		case Constantes.TESTE_SALVA_ARQUIVO_METADADOS:
 			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.STORAGE_SALVA_ARQUIVO:
+		case Constantes.TESTE_SALVA_ARQUIVO_STORAGE:
 			mensagemSaida.append("Operacao: Salvar arquivo nos Storages\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.REMOVE_ARQUIVO:
+		case Constantes.TESTE_REMOVE_ARQUIVO:
 			mensagemSaida.append("Operacao: Remover arquivo\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.LISTA_DADOS:
-			mensagemSaida.append("Operacao: Listar dados\n");
+		case Constantes.TESTE_LEITURA_ARQUIVO_THREAD:
+			mensagemSaida.append("Operacao: Busca e baixa arquivo (SEM HASH)\n");
+			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.BUSCA_ARQUIVO:
-			mensagemSaida.append("Operacao: Busca e baixa arquivo\n");
+		case Constantes.TESTE_LEITURA_ARQUIVO_HASH:
+			mensagemSaida.append("Operacao: Busca e baixa arquivo (COM HASH)\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
