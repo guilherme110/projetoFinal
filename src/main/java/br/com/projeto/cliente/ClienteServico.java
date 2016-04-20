@@ -290,7 +290,8 @@ public class ClienteServico {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
 		
-		if (mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual()) != null) {
+		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
+		if (arquivo != null) {
 			removeArquivoServidorMetaDados(arquivo, cliente, listaStorages);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
 				removeArquivoStorage(listaStorages, arquivo, cliente);
