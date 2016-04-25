@@ -149,9 +149,9 @@ public class ClienteServico {
 		}
 		System.out.println(" ");
 	}
-
-	//FIXME: Implementar mecanismo de ROOLBACK em caso de erro de envio do arquivo para os Storages
+	
 	/**Serviço para salvar um no arquivo.
+	 * Primeiro define que salvará o arquivo em 2F + 1 (sem utilização de hash)
 	 * Verifica se o arquivo já existe no diretorio atual do cliente
 	 * Caso não exista, salva primeiramente o arquivo no servidor de meta dados
 	 * Em caso de sucesso (lista de melhores storages não vazia) salva os arquivos nos storages
@@ -159,12 +159,69 @@ public class ClienteServico {
 	 * @param arquivo físico a ser enviado
 	 * @param cliente dados do cliente atual
 	 */
-	public void salvaArquivo(File arquivoFisico, Cliente cliente) {
+	public void salvaArquivoThread(File arquivoFisico, Cliente cliente) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivoLogico = new Arquivo();
 			
+		cliente.setNumeroStorages((2 * cliente.getfNumeroFalhas()) + 1);
 		if (mapDiretorio.buscaArquivo(arquivoFisico.getName(), cliente.getDiretorioClienteAtual()) == null) {
-			salvaArquivoServidorMetaDados(arquivoLogico, cliente, arquivoFisico, listaStorages);
+			salvaArquivoServidorMetaDadosHash(arquivoLogico, cliente, arquivoFisico, listaStorages);
+			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
+				salvaArquivoStorage(listaStorages, arquivoLogico, arquivoFisico, cliente);
+			} else {
+				System.out.println("Erro ao salvar o arquivo no servidor de meta dados!");
+			}
+		} else {
+			System.out.println("\nJá existe um arquivo com esse nome, nesse diretorio!");
+		}
+			
+	}
+	
+	/**Método para salvar o arquivo no servidor de meta dados
+	 * Seta os atributos do objeto do arquivo.
+	 * Chama o método de salva arquivo nos servidores e ele retorna uma lista com os storages a serem salvos.
+	 * 
+	 * @param novoArquivo arquivo lógico a ser salvo
+	 * @param cliente dados do cliente da aplicação
+	 * @param arquivo arquivo físico a ser salvo
+	 * @param listaStorages lista com os melhores storages
+	 */
+	public void salvaArquivoServidorMetaDadosThread(Arquivo novoArquivo, Cliente cliente, 
+			File arquivo, List<Storage> listaStorages) {
+		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
+		
+		novoArquivo.setNomeArquivo(arquivo.getName());
+		novoArquivo.setTamanhoArquivo(arquivo.length());
+		
+		try {
+			FileInputStream inputArquivo = new FileInputStream(arquivo);
+			inputArquivo.close();
+			listaStoragesTemp = mapDiretorio.salvaArquivo(novoArquivo, cliente);
+			
+			listaStorages.clear();
+			listaStorages.addAll(listaStoragesTemp);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	//FIXME: Implementar mecanismo de ROOLBACK em caso de erro de envio do arquivo para os Storages
+	/**Serviço para salvar um no arquivo.
+	 * Primeiro define que salvará o arquivo em F + 1 (utilizando hash)
+	 * Verifica se o arquivo já existe no diretorio atual do cliente
+	 * Caso não exista, salva primeiramente o arquivo no servidor de meta dados
+	 * Em caso de sucesso (lista de melhores storages não vazia) salva os arquivos nos storages
+	 *
+	 * @param arquivo físico a ser enviado
+	 * @param cliente dados do cliente atual
+	 */
+	public void salvaArquivoHash(File arquivoFisico, Cliente cliente) {
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Arquivo arquivoLogico = new Arquivo();
+			
+		cliente.setNumeroStorages(cliente.getfNumeroFalhas() + 1);
+		if (mapDiretorio.buscaArquivo(arquivoFisico.getName(), cliente.getDiretorioClienteAtual()) == null) {
+			salvaArquivoServidorMetaDadosHash(arquivoLogico, cliente, arquivoFisico, listaStorages);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
 				salvaArquivoStorage(listaStorages, arquivoLogico, arquivoFisico, cliente);
 			} else {
@@ -186,7 +243,7 @@ public class ClienteServico {
 	 * @param arquivo arquivo físico a ser salvo
 	 * @param listaStorages lista com os melhores storages
 	 */
-	public void salvaArquivoServidorMetaDados(Arquivo novoArquivo, Cliente cliente, 
+	public void salvaArquivoServidorMetaDadosHash(Arquivo novoArquivo, Cliente cliente, 
 			File arquivo, List<Storage> listaStorages) {
 		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
 		

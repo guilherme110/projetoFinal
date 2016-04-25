@@ -255,7 +255,7 @@ public class AplicacaoCliente {
 			System.out.print("opcao: ");
 			String opcao = leitor.next();
 			if (opcao.equalsIgnoreCase("S")){
-				clienteServico.salvaArquivo(arquivoEntrada, cliente);
+				clienteServico.salvaArquivoHash(arquivoEntrada, cliente);
 			}
 		} else {
 			System.out.println("Arquivo não encontrado.");
@@ -330,10 +330,19 @@ public class AplicacaoCliente {
 				LatenciaCliente testeLatencia = new LatenciaCliente(cliente, clienteServico);
 				
 				switch (opcaoTeste) {
-				case Constantes.TESTE_SALVA_ARQUIVO:
+				case Constantes.TESTE_SALVA_ARQUIVO_THREAD:
 					caminhoArquivo = verificaOpcaoArquivo();
 					if (caminhoArquivo != null) {
-						testeLatencia.testeSalvarArquivo(caminhoArquivo, numeroReq);
+						testeLatencia.testeSalvarArquivoThread(caminhoArquivo, numeroReq);
+					} else {
+						System.out.println("Opcao invalida!");
+					}
+					
+					break;
+				case Constantes.TESTE_SALVA_ARQUIVO_HASH:
+					caminhoArquivo = verificaOpcaoArquivo();
+					if (caminhoArquivo != null) {
+						testeLatencia.testeSalvarArquivoHash(caminhoArquivo, numeroReq);
 					} else {
 						System.out.println("Opcao invalida!");
 					}
@@ -415,10 +424,11 @@ public class AplicacaoCliente {
 		int opcaoTeste = 0;
 		
 		System.out.println(" ---------- Escolha a opcao do teste ----------");	
-		System.out.println("1 -> teste de salvamento de arquivos");	
-		System.out.println("2 -> teste de remocao de arquivos");
-		System.out.println("3 -> teste de leitura (download) de arquivos sem hash");
-		System.out.println("4 -> teste de leitura (download) de arquivos com hash");
+		System.out.println("1 -> teste de salvamento de arquivos sem hash");	
+		System.out.println("2 -> teste de salvamento de arquivos com hash");
+		System.out.println("3 -> teste de remocao de arquivos");
+		System.out.println("4 -> teste de leitura (download) de arquivos sem hash");
+		System.out.println("5 -> teste de leitura (download) de arquivos com hash");
 		System.out.println(" ");
 		System.out.print("opcao -> ");
 		comando = leitor.nextLine();

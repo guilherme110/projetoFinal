@@ -52,7 +52,7 @@ public class LatenciaCliente {
 		return arquivoFisicoTemp;
 	}
 	
-	/**Método para testes de salvamento de arquivos.
+	/**Método para testes de salvamento de arquivos utilizando hash.
 	 * Primeiramente cria-se um arquivo temporário que será utilizado nos testes.
 	 * Criou-se duas variaveis para armazenar os dados estatisticos, uma armazena
 	 * os dados das requisições para os servidores de metadados e a outra armazena as requisições aos storages.
@@ -63,7 +63,7 @@ public class LatenciaCliente {
 	 * @param nomeArquivo nome do arquivo escolhido para os testes.
 	 * @param numeroReq número de requisições escolhido para os testes.
 	 */
-	public void testeSalvarArquivo(String nomeArquivo, int numeroReq) {
+	public void testeSalvarArquivoHash(String nomeArquivo, int numeroReq) {
 		Estatistica estatisticaMetaDados = new Estatistica(numeroReq);
 		Estatistica estatisticaStorage = new Estatistica(numeroReq);
 		Long horarioReq, horarioResp = 0L;
@@ -73,7 +73,7 @@ public class LatenciaCliente {
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivoServidorMetaDados(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().salvaArquivoServidorMetaDadosHash(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
 			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
 			
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
@@ -81,7 +81,7 @@ public class LatenciaCliente {
 		
 		for (int i = 0; i < numeroReq; i++) {
 			horarioReq = System.nanoTime();
-			this.getClienteServico().salvaArquivoServidorMetaDados(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().salvaArquivoServidorMetaDadosHash(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
 			
@@ -93,8 +93,58 @@ public class LatenciaCliente {
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
 		
-		estatisticaMetaDados.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_METADADOS, arquivoLogicoTemp);
-		estatisticaStorage.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_STORAGE, arquivoLogicoTemp);
+		estatisticaMetaDados.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_HASH_METADADOS, arquivoLogicoTemp);
+		estatisticaStorage.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_HASH_STORAGE, arquivoLogicoTemp);
+		
+		for (int i = 0; i < 50; i++) {
+			System.out.println("");
+		}
+		System.out.println("Teste efetuado com sucesso, resultado salvo em log!");
+	}
+	
+	/**Método para testes de salvamento de arquivos utilizando thread.
+	 * Primeiramente cria-se um arquivo temporário que será utilizado nos testes.
+	 * Criou-se duas variaveis para armazenar os dados estatisticos, uma armazena
+	 * os dados das requisições para os servidores de metadados e a outra armazena as requisições aos storages.
+	 * Em seguida realiza o warm UP para aquecer o sistema.
+	 * Logo realiza os testes, salvando primeiramente os dados no servidor de meta dados e em seguida no storages.
+	 * Por último, salva os resultados em log. 
+	 * 
+	 * @param nomeArquivo nome do arquivo escolhido para os testes.
+	 * @param numeroReq número de requisições escolhido para os testes.
+	 */
+	public void testeSalvarArquivoThread(String nomeArquivo, int numeroReq) {
+		Estatistica estatisticaMetaDados = new Estatistica(numeroReq);
+		Estatistica estatisticaStorage = new Estatistica(numeroReq);
+		Long horarioReq, horarioResp = 0L;
+		List<Storage> listaStorages = new ArrayList<Storage>();
+		Arquivo arquivoLogicoTemp = new Arquivo();
+		File arquivoFisicoTemp = geraArquivoTemp(nomeArquivo);
+		
+		//Warm UP
+		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
+			this.getClienteServico().salvaArquivoServidorMetaDadosThread(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		}
+		
+		for (int i = 0; i < numeroReq; i++) {
+			horarioReq = System.nanoTime();
+			this.getClienteServico().salvaArquivoServidorMetaDadosThread(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			horarioResp = System.nanoTime();
+			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
+			
+			horarioReq = System.nanoTime();
+			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			horarioResp = System.nanoTime();
+			estatisticaStorage.getSt().store(horarioResp - horarioReq);
+			
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		}
+		
+		estatisticaMetaDados.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_THREAD_METADADOS, arquivoLogicoTemp);
+		estatisticaStorage.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_THREAD_STORAGE, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
@@ -119,12 +169,12 @@ public class LatenciaCliente {
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+			this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
 		
 		for (int i = 0; i < numeroReq; i++) {	
-			this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+			this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
 			
 			horarioReq = System.nanoTime();
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
@@ -146,7 +196,7 @@ public class LatenciaCliente {
 		Arquivo arquivoLogicoTemp = new Arquivo(arquivoFisicoTemp.getName(), arquivoFisicoTemp.length(), null, null);
 		
 		//Warm UP, salva o arquivo temporário para testes.
-		this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+		this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
 			this.getClienteServico().baixaArquivoThread(arquivoLogicoTemp.getNomeArquivo(), this.getClienteTeste());
 		}
@@ -175,7 +225,7 @@ public class LatenciaCliente {
 		Arquivo arquivoLogicoTemp = new Arquivo(arquivoFisicoTemp.getName(), arquivoFisicoTemp.length(), null, null);
 		
 		//Warm UP, salva o arquivo temporário para testes.
-		this.getClienteServico().salvaArquivo(arquivoFisicoTemp, this.getClienteTeste());
+		this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
 			this.getClienteServico().baixaArquivoHash(arquivoLogicoTemp.getNomeArquivo(), this.getClienteTeste());
 		}

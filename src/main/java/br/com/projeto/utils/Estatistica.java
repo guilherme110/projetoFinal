@@ -53,13 +53,23 @@ public class Estatistica {
 		Formatacao format = new Formatacao();
 		
 		switch (operacao) {
-		case Constantes.TESTE_SALVA_ARQUIVO_METADADOS:
-			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados\n");
+		case Constantes.TESTE_SALVA_ARQUIVO_THREAD_METADADOS:
+			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados (SEM HASH)\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.TESTE_SALVA_ARQUIVO_STORAGE:
-			mensagemSaida.append("Operacao: Salvar arquivo nos Storages\n");
+		case Constantes.TESTE_SALVA_ARQUIVO_THREAD_STORAGE:
+			mensagemSaida.append("Operacao: Salvar arquivo nos Storages (SEM HASH)\n");
+			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
+			break;
+		case Constantes.TESTE_SALVA_ARQUIVO_HASH_METADADOS:
+			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados (COM HASH)\n");
+			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
+			break;
+		case Constantes.TESTE_SALVA_ARQUIVO_HASH_STORAGE:
+			mensagemSaida.append("Operacao: Salvar arquivo nos Storages (COM HASH)\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
