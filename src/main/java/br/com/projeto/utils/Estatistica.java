@@ -39,6 +39,10 @@ public class Estatistica {
 		this.logger = Logger.getLogger(Estatistica.class);
 	}
 	
+	public Estatistica() {
+		this.logger = Logger.getLogger(Estatistica.class);
+	}
+	
 	/**Método que monta os dados para serem salvos no log.
 	 * Dependendo da operação, um cabeçalho é montado para o log.
 	 * Por fim realiza calculos de média da requisição.
@@ -48,7 +52,7 @@ public class Estatistica {
 	 * @param horarioReq tempo de inicio da requisição.
 	 * @param horarioResp tempo final da requisição.
 	 */
-	public void salvaDados(int operacao, Arquivo arquivo) {
+	public void salvaDadosLatencia(int operacao, Arquivo arquivo) {
 		StringBuilder mensagemSaida = new StringBuilder();
 		Formatacao format = new Formatacao();
 		
@@ -97,6 +101,13 @@ public class Estatistica {
 		mensagemSaida.append("Average time for " + this.getNumeroReq() + " executions (all samples) = " + this.st.getAverage(false) / 1000 + " us\n");
 		mensagemSaida.append("Standard desviation for " + this.getNumeroReq() + " executions (all samples) = " + this.st.getDP(false) / 1000 + " us\n");
 		mensagemSaida.append("Maximum time for " + this.getNumeroReq() + " executions (all samples) = " + this.st.getMax(false) / 1000 + " us\n");
+		
+		this.logger.info(mensagemSaida);
+	}
+	
+	public void salvaDadosThroughPut(float tp, float maxTp) {
+		StringBuilder mensagemSaida = new StringBuilder();
+		mensagemSaida.append("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
 		
 		this.logger.info(mensagemSaida);
 	}

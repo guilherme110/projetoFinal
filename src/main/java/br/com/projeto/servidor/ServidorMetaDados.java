@@ -25,6 +25,7 @@ import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.ArvoreDiretorio;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
+import br.com.projeto.utils.Estatistica;
 
 /**Classe do objeto Servidor de metadados.
  * Contêm o id do servidor, a arvore de diretorio,
@@ -33,6 +34,10 @@ import br.com.projeto.utils.Constantes;
  */
 public class ServidorMetaDados extends DefaultSingleRecoverable {
 	private int 	idServidor;
+	private long	throughputMeasurementStartTime;
+    private int 	iteracoes;
+    private int 	intervalo;
+    private float 	maxTp;
 	ArvoreDiretorio arvoreDiretorio;
 	ServidorServico servidorServico;
 	Map<Integer, Storage> tabelaStorage;
@@ -49,6 +54,13 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 		arvoreDiretorio = new ArvoreDiretorio();
 		servidorServico = new ServidorServico();
 		tabelaStorage =  new HashMap<Integer,Storage>();
+		
+		//dados estatisticos
+		throughputMeasurementStartTime = System.currentTimeMillis();
+		intervalo = 200;
+		maxTp = 0;
+		iteracoes = 0;
+		
 		new ServiceReplica(idServidor, this, this);
 	}
 
@@ -68,6 +80,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
 	 * appExecuteOrdered são métodos que são realizados de forma ordenada.
 	 * De acordo com a opção solicitada pelo mapDiretorio, um serviço e executado.
+	 * Caso a opção escolhida seja escrita é gravado o through put da operação.
 	 * 
 	 * @param dadosCliente stream de dados vindo do cliente.
 	 * @param msgCtx dados do BFT-Smart.
@@ -90,6 +103,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 				resposta = servidorServico.removeDiretorio(dados, arvoreDiretorio);
 				break;	
 			case Constantes.SALVA_ARQUIVO:
+				calculaThroughPut();
 				resposta = opcaoSalvaArquivo(dados);
 				break;	
 			case Constantes.REMOVE_ARQUIVO:
@@ -146,6 +160,25 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 		}
 		
 		return resposta;
+	}
+	
+	private void calculaThroughPut() {
+		float tp = -1;
+		Estatistica estatistica = new Estatistica();
+		
+		if(iteracoes % intervalo == 0) {
+			System.out.println("--- Measurements after " + iteracoes + " ops (" + intervalo + " samples) ---");
+			tp = (float)(intervalo*1000/(float)(System.currentTimeMillis()-throughputMeasurementStartTime));
+			if (tp > maxTp) {
+				maxTp = tp;
+			}
+	            
+			System.out.println("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
+			estatistica.salvaDadosThroughPut(tp, maxTp);
+			
+			throughputMeasurementStartTime = System.currentTimeMillis();
+		}
+		iteracoes ++;
 	}
 
 	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart.

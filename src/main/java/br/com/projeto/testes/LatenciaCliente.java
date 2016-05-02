@@ -93,8 +93,8 @@ public class LatenciaCliente {
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
 		
-		estatisticaMetaDados.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_HASH_METADADOS, arquivoLogicoTemp);
-		estatisticaStorage.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_HASH_STORAGE, arquivoLogicoTemp);
+		estatisticaMetaDados.salvaDadosLatencia(Constantes.TESTE_SALVA_ARQUIVO_HASH_METADADOS, arquivoLogicoTemp);
+		estatisticaStorage.salvaDadosLatencia(Constantes.TESTE_SALVA_ARQUIVO_HASH_STORAGE, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
@@ -143,8 +143,8 @@ public class LatenciaCliente {
 			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
 		}
 		
-		estatisticaMetaDados.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_THREAD_METADADOS, arquivoLogicoTemp);
-		estatisticaStorage.salvaDados(Constantes.TESTE_SALVA_ARQUIVO_THREAD_STORAGE, arquivoLogicoTemp);
+		estatisticaMetaDados.salvaDadosLatencia(Constantes.TESTE_SALVA_ARQUIVO_THREAD_METADADOS, arquivoLogicoTemp);
+		estatisticaStorage.salvaDadosLatencia(Constantes.TESTE_SALVA_ARQUIVO_THREAD_STORAGE, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
@@ -181,7 +181,7 @@ public class LatenciaCliente {
 			horarioResp = System.nanoTime();
 			estatistica.getSt().store(horarioResp - horarioReq);
 		}
-		estatistica.salvaDados(Constantes.TESTE_REMOVE_ARQUIVO, arquivoLogicoTemp);
+		estatistica.salvaDadosLatencia(Constantes.TESTE_REMOVE_ARQUIVO, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
@@ -209,7 +209,7 @@ public class LatenciaCliente {
 		}
 	
 		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
-		estatistica.salvaDados(Constantes.TESTE_LEITURA_ARQUIVO_THREAD, arquivoLogicoTemp);
+		estatistica.salvaDadosLatencia(Constantes.TESTE_LEITURA_ARQUIVO_THREAD, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
@@ -238,7 +238,7 @@ public class LatenciaCliente {
 		}
 	
 		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
-		estatistica.salvaDados(Constantes.TESTE_LEITURA_ARQUIVO_HASH, arquivoLogicoTemp);
+		estatistica.salvaDadosLatencia(Constantes.TESTE_LEITURA_ARQUIVO_HASH, arquivoLogicoTemp);
 		
 		for (int i = 0; i < 50; i++) {
 			System.out.println("");
