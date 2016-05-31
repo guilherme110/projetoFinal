@@ -35,5 +35,9 @@ public class Constantes {
 	public static final int TESTE_SALVA_ARQUIVO_THREAD_STORAGE   = 7;
 	public static final int TESTE_SALVA_ARQUIVO_HASH_METADADOS   = 8;
 	public static final int TESTE_SALVA_ARQUIVO_HASH_STORAGE     = 9;
+	public static final int TESTE_LE_ARQUIVO_THREAD_METADADOS 	 = 10;
+	public static final int TESTE_LE_ARQUIVO_THREAD_STORAGE   	 = 11;
+	public static final int TESTE_LE_ARQUIVO_HASH_METADADOS   	 = 12;
+	public static final int TESTE_LE_ARQUIVO_HASH_STORAGE     	 = 13;
 	public static final int WARM_UP_DEFAULT	                     = 50;
 }

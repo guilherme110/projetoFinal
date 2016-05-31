@@ -34,6 +34,7 @@ import br.com.projeto.utils.Estatistica;
  */
 public class ServidorMetaDados extends DefaultSingleRecoverable {
 	private int 	idServidor;
+	private boolean mensurarTestes;
 	private long	throughputMeasurementStartTime;
     private int 	iteracoes;
     private int 	intervalo;
@@ -49,8 +50,9 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 	 * 
 	 * @param idServidor
 	 */
-	public ServidorMetaDados(int idServidor) {		
+	public ServidorMetaDados(int idServidor, boolean mensurarTestes) {		
 		this.idServidor = idServidor;
+		this.mensurarTestes = mensurarTestes;
 		arvoreDiretorio = new ArvoreDiretorio();
 		servidorServico = new ServidorServico();
 		tabelaStorage =  new HashMap<Integer,Storage>();
@@ -65,16 +67,16 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 	}
 
 	/**Método de inicialização do servidor.
-	 * Recebe como argumento o id do servidor.
+	 * Recebe como argumento o id do servidor e uma flag indicando se será mensurado os testes de throughput.
 	 * 
 	 * @param args id do servidor.
 	 */
 	public static void main(String[] args){
-        if(args.length < 1) {
-            System.out.println("Necessário passar o <id do Servidor>");
+        if(args.length < 2) {
+            System.out.println("Necessário passar o <id do Servidor> <flag para mensuração de dados>");
             System.exit(-1);
         }
-        new ServidorMetaDados(Integer.parseInt(args[0]));
+        new ServidorMetaDados(Integer.parseInt(args[0]), Boolean.parseBoolean(args[1]));
 	}
 	
 	/**Método sobreescrito da classe DefaultSingleRecoverable da biblioteca BFT-Smart
@@ -95,6 +97,11 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 			ByteArrayInputStream dados = new ByteArrayInputStream(dadosCliente);
             int comando = new DataInputStream(dados).readInt();
             
+            //Calcula o throughput caso tenha sido selecionada a mensuração de dados.
+            if (this.isMensurarTestes()) {
+            	calculaThroughPut();
+			}
+        	
 			switch (comando) {
 			case Constantes.CRIA_DIRETORIO:
 				resposta = servidorServico.criaDiretorio(dados, arvoreDiretorio);
@@ -103,7 +110,6 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 				resposta = servidorServico.removeDiretorio(dados, arvoreDiretorio);
 				break;	
 			case Constantes.SALVA_ARQUIVO:
-				calculaThroughPut();
 				resposta = opcaoSalvaArquivo(dados);
 				break;	
 			case Constantes.REMOVE_ARQUIVO:
@@ -171,11 +177,10 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 			tp = (float)(intervalo*1000/(float)(System.currentTimeMillis()-throughputMeasurementStartTime));
 			if (tp > maxTp) {
 				maxTp = tp;
+				System.out.println("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
+				estatistica.salvaDadosThroughPut(tp, maxTp);
 			}
-	            
-			System.out.println("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
-			estatistica.salvaDadosThroughPut(tp, maxTp);
-			
+
 			throughputMeasurementStartTime = System.currentTimeMillis();
 		}
 		iteracoes ++;
@@ -353,5 +358,13 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 
 	public void setIdServidor(int idServidor) {
 		this.idServidor = idServidor;
+	}
+
+	public boolean isMensurarTestes() {
+		return mensurarTestes;
+	}
+
+	public void setMensurarTestes(boolean mensurarTestes) {
+		this.mensurarTestes = mensurarTestes;
 	}
 }

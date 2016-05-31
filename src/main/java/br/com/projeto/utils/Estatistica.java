@@ -82,16 +82,26 @@ public class Estatistica {
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.TESTE_LEITURA_ARQUIVO_THREAD:
-			mensagemSaida.append("Operacao: Busca e baixa arquivo (SEM HASH)\n");
+		case Constantes.TESTE_LE_ARQUIVO_THREAD_METADADOS:
+			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados (SEM HASH)\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
-		case Constantes.TESTE_LEITURA_ARQUIVO_HASH:
-			mensagemSaida.append("Operacao: Busca e baixa arquivo (COM HASH)\n");
+		case Constantes.TESTE_LE_ARQUIVO_THREAD_STORAGE:
+			mensagemSaida.append("Operacao: Salvar arquivo nos Storages (SEM HASH)\n");
 			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
 			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
 			break;
+		case Constantes.TESTE_LE_ARQUIVO_HASH_METADADOS:
+			mensagemSaida.append("Operacao: Salvar arquivo no Servidor de Meta Dados (COM HASH)\n");
+			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
+			break;
+		case Constantes.TESTE_LE_ARQUIVO_HASH_STORAGE:
+			mensagemSaida.append("Operacao: Salvar arquivo nos Storages (COM HASH)\n");
+			mensagemSaida.append("Nome Arquivo: " + arquivo.getNomeArquivo() + "\n");
+			mensagemSaida.append("Tamanho do Arquivo: " + format.convertNomeBytes(arquivo.getTamanhoArquivo(), true) + "\n");	
+			break;	
 		default:
 			break;
 		}
@@ -105,10 +115,21 @@ public class Estatistica {
 		this.logger.info(mensagemSaida);
 	}
 	
+	public void salvaTempoMaximo(Estatistica estatisticaMetaDados, Estatistica estatisticaStorage) {
+		StringBuilder mensagemSaida = new StringBuilder();
+		Long tempoMaximo = estatisticaMetaDados.getSt().getAverage(false) + estatisticaStorage.getSt().getAverage(false);
+		double desvioPadrao = estatisticaMetaDados.getSt().getDP(false) + estatisticaStorage.getSt().getDP(false);
+
+		mensagemSaida.append("Average time for (Meta dados + Storage): " + tempoMaximo / 1000 + " us\n");
+		mensagemSaida.append("Standard desviation for (Meta dados + Storage): " + desvioPadrao / 1000 + " us\n");
+	
+		this.logger.info(mensagemSaida);
+	}
+	
 	public void salvaDadosThroughPut(float tp, float maxTp) {
 		StringBuilder mensagemSaida = new StringBuilder();
-		mensagemSaida.append("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
 		
+		mensagemSaida.append("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
 		this.logger.info(mensagemSaida);
 	}
 	

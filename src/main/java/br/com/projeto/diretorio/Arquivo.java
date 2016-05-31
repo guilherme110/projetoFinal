@@ -21,6 +21,7 @@ public class Arquivo implements Serializable{
 	
 	public Arquivo() {
 		this.listaIdStorage = new ArrayList<Integer>();
+		this.tamanhoArquivo = 0L;
 	}
 	
 	public Arquivo(String nomeArquivo, Long tamanhoArquivo, List<Integer> listaIdStorage, 
@@ -70,6 +71,13 @@ public class Arquivo implements Serializable{
 
 	public void setCodigoHash(String codigoHash) {
 		this.codigoHash = codigoHash;
+	}
+	
+	public void clone(Arquivo arquivo){
+		this.codigoHash = arquivo.getCodigoHash();
+		this.listaIdStorage = arquivo.getListaIdStorage();
+		this.tamanhoArquivo = arquivo.getTamanhoArquivo();
+		this.nomeArquivo = arquivo.getNomeArquivo();
 	}
 
 	@Override

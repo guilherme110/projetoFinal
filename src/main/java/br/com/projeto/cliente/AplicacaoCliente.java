@@ -24,7 +24,7 @@ public class AplicacaoCliente {
 	/**Método inicial da aplicação
 	 * 
 	 * @param args[0] Id para o proxy de comunicação com o servidor de meta dados
-	 * args[1]: numero de chash's que o sistema suportará
+	 * args[1]: numero de crash's que o sistema suportará
 	 * args[2]: diretorio de armazenamento de arquivos baixados do sistema.
 	 */
 	public static void main(String[] args) {
@@ -129,7 +129,7 @@ public class AplicacaoCliente {
 			opcaoRemoveArquivo(comando, leitor);
 			break;
 		case "la":
-			opcaoBaixaArquivo(comando, leitor);
+			opcaoLeArquivo(comando, leitor);
 			break;
 		case "ls":
 			opcaoListaDados();
@@ -282,14 +282,14 @@ public class AplicacaoCliente {
 		clienteServico.removeArquivo(nomeArquivo, cliente);
 	}
 	
-	/**Método de opção para buscar um arquivo do storage para o cliente.
+	/**Método de opção para le um arquivo do storage para o cliente.
 	 * Caso o nome do arquivo não seja informado, solicita o nome.
-	 * Por último chama o serviço para buscar o arquivo. 
+	 * Por último chama o serviço para le o arquivo (default leitura com Hash). 
 	 * 
 	 * @param dadosLeitura dados informado pelo cliente.
 	 * @param leitor de dados do cliente.
 	 */
-	private static void opcaoBaixaArquivo(String dadosLeitura, Scanner leitor) {
+	private static void opcaoLeArquivo(String dadosLeitura, Scanner leitor) {
 		String nomeArquivo;
 		
 		try { 
@@ -299,8 +299,9 @@ public class AplicacaoCliente {
 			System.out.print("Insira o nome do arquivo: ");
 			nomeArquivo = leitor.nextLine();
 		}
-		//clienteServico.baixaArquivoThread(nomeArquivo, cliente);
-		clienteServico.baixaArquivoHash(nomeArquivo, cliente);
+		
+		//clienteServico.leArquivoThread(nomeArquivo, cliente);
+		clienteServico.leArquivoHash(nomeArquivo, cliente);
 		
 	}
 
