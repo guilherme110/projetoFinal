@@ -287,7 +287,7 @@ public class MapDiretorio {
 		    } catch (ClassNotFoundException ex) {
 		       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 		    }
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			Logger.getLogger(MapDiretorio.class.getName()).log(Level.SEVERE, null, ex);
 			return null;

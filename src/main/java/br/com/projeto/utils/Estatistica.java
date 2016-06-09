@@ -126,7 +126,7 @@ public class Estatistica {
 		this.logger.info(mensagemSaida);
 	}
 	
-	public void salvaDadosThroughPut(float tp, float maxTp) {
+	public void salvaDadosThroughPut(double tp, double maxTp) {
 		StringBuilder mensagemSaida = new StringBuilder();
 		
 		mensagemSaida.append("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");
