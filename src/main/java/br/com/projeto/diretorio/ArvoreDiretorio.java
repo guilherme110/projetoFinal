@@ -22,7 +22,6 @@ public class ArvoreDiretorio implements Serializable {
 	 */
 	public ArvoreDiretorio() {
 		Diretorio diretorioRaiz = new Diretorio();
-		diretorioRaiz.setTotalArquivos(0);
 		diretorioRaiz.setNomeDiretorio("home");
 		
 		home = new Node<Object>("home");
@@ -45,7 +44,6 @@ public class ArvoreDiretorio implements Serializable {
 		String msgSaida = "";
 		Diretorio novoDiretorio = new Diretorio();
 		novoDiretorio.setNomeDiretorio(nomeNovoDiretorio);
-		novoDiretorio.setTotalArquivos(0);
 		Node<Object> novoNode = null;
 		Node<Object> nodeAux = home;
 		

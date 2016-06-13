@@ -199,6 +199,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 	 * 
 	 * @param state
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
     public void installSnapshot(byte[] state) {
         try {             
@@ -206,6 +207,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
             ByteArrayInputStream bis = new ByteArrayInputStream(state);
             ObjectInput in = new ObjectInputStream(bis);
             arvoreDiretorio = (ArvoreDiretorio) in.readObject();
+            tabelaStorage = (Map<Integer, Storage>) in.readObject();
             in.close();
             bis.close();
 
@@ -227,6 +229,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutput out = new ObjectOutputStream(bos);
             out.writeObject(arvoreDiretorio);
+            out.writeObject(tabelaStorage);
             out.flush();
             bos.flush();
             out.close();
