@@ -1,11 +1,11 @@
 package br.com.projeto.cliente;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import bftsmart.tom.ServiceProxy;
+import br.com.projeto.interfaces.InterfaceCliente;
 import br.com.projeto.testes.LatenciaCliente;
 import br.com.projeto.utils.Constantes;
 import br.com.projeto.utils.Formatacao;
@@ -16,7 +16,7 @@ import br.com.projeto.utils.Formatacao;
  * @author guilherme
  *
  */
-public class AplicacaoCliente {
+public class AplicacaoCliente implements InterfaceCliente{
 	private static ClienteServico clienteServico;
 	private static Cliente cliente;
 	private static ServiceProxy KVProxy;
@@ -28,15 +28,39 @@ public class AplicacaoCliente {
 	 * args[2]: diretorio de armazenamento de arquivos baixados do sistema.
 	 */
 	public static void main(String[] args) {
+		AplicacaoCliente aplicacaoCliente = new AplicacaoCliente();
+		
 		if(args.length < 3) {
 			System.out.println("Necessário passar o <process id>, <f do sistema> e <local de armazenamento>");
 			System.exit(-1);
 		}
-		criaCliente(args[0], Integer.parseInt(args[1]), args[2]);
+		aplicacaoCliente.iniciarAplicacao(Integer.parseInt(args[0]), Integer.parseInt(args[1]), args[2]);
 		carregaTela();
 		opcoesCliente();
 	}
 
+	@Override
+	public ServiceProxy estabeleceComunicacaoBFT(int idCliente) {
+		try {
+			return new ServiceProxy(idCliente);
+		} catch (Exception e) {
+			System.out.println("Erro de comunicação com os servidores!");
+			System.exit(-1);
+		}
+		return null;
+	}
+
+	@Override
+	public Cliente criaCliente(int idCliente, int fNumeroFalhas,
+			String localArmazenamento) {
+		return new Cliente(idCliente, fNumeroFalhas, localArmazenamento);
+	}
+
+	@Override
+	public ClienteServico criaClienteServico(ServiceProxy kVProxy, Cliente cliente) {
+		return new ClienteServico(kVProxy, cliente);
+	}
+	
 	/**Método que cria o objeto cliente, o objeto clienteServico
 	 * e cria a comunicação com os servidores de metadados.
 	 * KVProxy é o serviço de proxy de comunicação com os servidores de metadados.
@@ -45,24 +69,15 @@ public class AplicacaoCliente {
 	 * @param FNumeroStorages (2 * FNumeroStorages + 1) número de storages a serem utilizados.
 	 * @param localArmazenamento local de armazenamento de arquivos recebidos pelo storage
 	 */	
-	public static void criaCliente(String idCliente, int fNumeroFalhas, String localArmazenamento) {
-		cliente = new Cliente();
-		
-		cliente.setIdCliente(Integer.parseInt(idCliente));
-		cliente.setDiretorioClienteAtual(new ArrayList<String>());
-		cliente.getDiretorioClienteAtual().add("home");
-		cliente.setNumeroStorages(2 * fNumeroFalhas + 1);
-		cliente.setfNumeroFalhas(fNumeroFalhas);
-		cliente.setLocalArmazenamento(localArmazenamento);
-		
+	public void iniciarAplicacao(int idCliente, int fNumeroFalhas, String localArmazenamento) {
+		cliente = criaCliente(idCliente, fNumeroFalhas, localArmazenamento);
 		try {
-			KVProxy = new ServiceProxy(cliente.getIdCliente());
-			clienteServico = new ClienteServico(KVProxy);
+			KVProxy = estabeleceComunicacaoBFT(cliente.getIdCliente());
 		} catch (Exception e) {
-			System.out.println("Erro de comunicação com os servidores!");
+			System.out.println("Erro na comunicação com o BFT-SMaRt!");
 			System.exit(-1);
 		}
-		
+		clienteServico = criaClienteServico(KVProxy, cliente);
 	}
 	
 	/**Método que carrega as opções em tela para o cliente.
@@ -73,9 +88,9 @@ public class AplicacaoCliente {
 		System.out.println("cd -> movimentar entre as pastas [nome da pasta]");
 		System.out.println("mk -> criar diretorio [nome do diretorio]");
 		System.out.println("rmd -> remover diretorio [nome do diretorio]");
-		System.out.println("sv -> salvar arquivo [caminho do arquivo]");
+		System.out.println("ea -> escrever arquivo [caminho do arquivo]");
 		System.out.println("rm -> remover arquivo [caminho do arquivo]");
-		System.out.println("la -> le arquivo [nome do arquivo]");
+		System.out.println("la -> ler arquivo [nome do arquivo]");
 		System.out.println("ls -> listar arquivos e diretorios");
 		System.out.println("ts -> teste de performance");
 		System.out.println("exit -> sair do programa");
@@ -122,8 +137,8 @@ public class AplicacaoCliente {
 		case "rmd":
 			opcaoRemoveDiretorio(comando, leitor);
 			break;
-		case "sv":
-			opcaoSalvaArquivo(comando, leitor);
+		case "ea":
+			opcaoEscreveArquivo(comando, leitor);
 			break;
 		case "rm":
 			opcaoRemoveArquivo(comando, leitor);
@@ -182,7 +197,7 @@ public class AplicacaoCliente {
 			nomeDiretorio = leitor.nextLine();
 		}
 		
-		clienteServico.moveDiretorio(nomeDiretorio, cliente);
+		clienteServico.moveDiretorio(nomeDiretorio);
 		
 	}
 
@@ -203,7 +218,7 @@ public class AplicacaoCliente {
 			System.out.print("Insira o nome do diretorio: ");
 			nomeDiretorio = leitor.nextLine();
 		}
-		clienteServico.criaDiretorio(nomeDiretorio, cliente);
+		clienteServico.criaDiretorio(nomeDiretorio);
 	}
 
 	/**Método de opcao para remover um novo diretorio.
@@ -223,7 +238,7 @@ public class AplicacaoCliente {
 			System.out.print("Insira o nome do diretorio: ");
 			nomeDiretorio = leitor.nextLine();
 		}
-		clienteServico.removeDiretorio(nomeDiretorio, cliente);
+		clienteServico.removeDiretorio(nomeDiretorio);
 	}
 	
 	
@@ -235,7 +250,7 @@ public class AplicacaoCliente {
 	 * @param dadosLeitura dados informado pelo cliente.
 	 * @param leitor de dados do cliente.
 	 */
-	private static void opcaoSalvaArquivo(String dadosLeitura, Scanner leitor) {
+	private static void opcaoEscreveArquivo(String dadosLeitura, Scanner leitor) {
 		File arquivoEntrada;
 		Formatacao format = new Formatacao();
 		String parametro;
@@ -255,7 +270,7 @@ public class AplicacaoCliente {
 			System.out.print("opcao: ");
 			String opcao = leitor.next();
 			if (opcao.equalsIgnoreCase("S")){
-				clienteServico.salvaArquivoHash(arquivoEntrada, cliente);
+				clienteServico.escreveArquivoHash(arquivoEntrada);
 			}
 		} else {
 			System.out.println("Arquivo não encontrado.");
@@ -279,7 +294,7 @@ public class AplicacaoCliente {
 			System.out.print("Insira o local do arquivo: ");
 			nomeArquivo = leitor.nextLine();
 		}
-		clienteServico.removeArquivo(nomeArquivo, cliente);
+		clienteServico.removeArquivo(nomeArquivo);
 	}
 	
 	/**Método de opção para le um arquivo do storage para o cliente.
@@ -301,7 +316,7 @@ public class AplicacaoCliente {
 		}
 		
 		//clienteServico.leArquivoThread(nomeArquivo, cliente);
-		clienteServico.leArquivoHash(nomeArquivo, cliente);
+		clienteServico.leArquivoHash(nomeArquivo);
 		
 	}
 
@@ -310,7 +325,7 @@ public class AplicacaoCliente {
 	 * Chama o serviço de listar o diretório.
 	 */
 	private static void opcaoListaDados() {
-		clienteServico.listaDados(cliente);
+		clienteServico.listaDados();
 	}
 	
 	/**Método de opção para realizar testes no sistema.

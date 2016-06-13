@@ -1,5 +1,6 @@
 package br.com.projeto.cliente;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**Classe para objetos do tipo Cliente.
@@ -22,6 +23,21 @@ public class Cliente {
 		
 	}
 	
+	
+	
+	public Cliente(int idCliente, int fNumeroFalhas,
+			String localArmazenamento) {
+		super();
+		this.idCliente = idCliente;
+		this.diretorioClienteAtual = new ArrayList<String>();
+		this.diretorioClienteAtual.add("home");
+		this.numeroStorages = 2 * fNumeroFalhas + 1;
+		this.fNumeroFalhas = fNumeroFalhas;
+		this.localArmazenamento = localArmazenamento;
+	}
+
+
+
 	public int getIdCliente() {
 		return idCliente;
 	}

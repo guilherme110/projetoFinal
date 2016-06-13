@@ -73,24 +73,24 @@ public class LatenciaCliente {
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivoServidorMetaDadosHash(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
-			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			this.getClienteServico().escreveArquivoServidorMetaDadosHash(arquivoLogicoTemp, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().escreveArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp);
 			
-			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 		}
 		
 		for (int i = 0; i < numeroReq; i++) {
 			horarioReq = System.nanoTime();
-			this.getClienteServico().salvaArquivoServidorMetaDadosHash(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().escreveArquivoServidorMetaDadosHash(arquivoLogicoTemp, arquivoFisicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
 			
 			horarioReq = System.nanoTime();
-			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			this.getClienteServico().escreveArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp);
 			horarioResp = System.nanoTime();
 			estatisticaStorage.getSt().store(horarioResp - horarioReq);
 			
-			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 		}
 		
 		estatisticaMetaDados.salvaDadosLatencia(Constantes.TESTE_SALVA_ARQUIVO_HASH_METADADOS, arquivoLogicoTemp);
@@ -124,24 +124,24 @@ public class LatenciaCliente {
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivoServidorMetaDadosThread(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
-			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			this.getClienteServico().escreveArquivoServidorMetaDadosThread(arquivoLogicoTemp, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().escreveArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp);
 			
-			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 		}
 		
 		for (int i = 0; i < numeroReq; i++) {
 			horarioReq = System.nanoTime();
-			this.getClienteServico().salvaArquivoServidorMetaDadosThread(arquivoLogicoTemp, this.clienteTeste, arquivoFisicoTemp, listaStorages);
+			this.getClienteServico().escreveArquivoServidorMetaDadosThread(arquivoLogicoTemp, arquivoFisicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
 			
 			horarioReq = System.nanoTime();
-			this.getClienteServico().salvaArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp, this.clienteTeste);
+			this.getClienteServico().escreveArquivoStorage(listaStorages, arquivoLogicoTemp, arquivoFisicoTemp);
 			horarioResp = System.nanoTime();
 			estatisticaStorage.getSt().store(horarioResp - horarioReq);
 			
-			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 		}
 		
 		estatisticaMetaDados.salvaDadosLatencia(Constantes.TESTE_SALVA_ARQUIVO_THREAD_METADADOS, arquivoLogicoTemp);
@@ -171,15 +171,15 @@ public class LatenciaCliente {
 		
 		//Warm UP
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
-			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().escreveArquivoThread(arquivoFisicoTemp);
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 		}
 		
 		for (int i = 0; i < numeroReq; i++) {	
-			this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
+			this.getClienteServico().escreveArquivoThread(arquivoFisicoTemp);
 			
 			horarioReq = System.nanoTime();
-			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+			this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 			horarioResp = System.nanoTime();
 			estatistica.getSt().store(horarioResp - horarioReq);
 		}
@@ -201,24 +201,24 @@ public class LatenciaCliente {
 				new ArrayList<Integer>(), null);
 		
 		//Warm UP, salva o arquivo temporário para testes.
-		this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
+		this.getClienteServico().escreveArquivoThread(arquivoFisicoTemp);
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);
-			this.getClienteServico().leArquivoStorageThread(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);	
+			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, listaStorages);
+			this.getClienteServico().leArquivoStorageThread(arquivoLogicoTemp, listaStorages);	
 		}
 		
 		for (int i = 0; i < numeroReq; i++) {
 			horarioReq = System.nanoTime();
-			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);
+			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
 			
 			horarioReq = System.nanoTime();
-			this.getClienteServico().leArquivoStorageThread(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);
+			this.getClienteServico().leArquivoStorageThread(arquivoLogicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaStorage.getSt().store(horarioResp - horarioReq);
 		}
-		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 	
 		estatisticaMetaDados.salvaDadosLatencia(Constantes.TESTE_LE_ARQUIVO_THREAD_METADADOS, arquivoLogicoTemp);
 		estatisticaStorage.salvaDadosLatencia(Constantes.TESTE_LE_ARQUIVO_THREAD_STORAGE, arquivoLogicoTemp);
@@ -241,24 +241,24 @@ public class LatenciaCliente {
 				new ArrayList<Integer>(), null);
 		
 		//Warm UP, salva o arquivo temporário para testes.
-		this.getClienteServico().salvaArquivoThread(arquivoFisicoTemp, this.getClienteTeste());
+		this.getClienteServico().escreveArquivoThread(arquivoFisicoTemp);
 		for (int i = 0; i < Constantes.WARM_UP_DEFAULT; i++) {
-			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);
-			this.getClienteServico().leArquivoStorageHash(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);	
+			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, listaStorages);
+			this.getClienteServico().leArquivoStorageHash(arquivoLogicoTemp, listaStorages);	
 		}
 		
 		for (int i = 0; i < numeroReq; i++) {
 			horarioReq = System.nanoTime();
-			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);
+			this.getClienteServico().leArquivoMetaDados(arquivoLogicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaMetaDados.getSt().store(horarioResp - horarioReq);
 			
 			horarioReq = System.nanoTime();
-			this.getClienteServico().leArquivoStorageHash(arquivoLogicoTemp, this.getClienteTeste(), listaStorages);
+			this.getClienteServico().leArquivoStorageHash(arquivoLogicoTemp, listaStorages);
 			horarioResp = System.nanoTime();
 			estatisticaStorage.getSt().store(horarioResp - horarioReq);
 		}
-		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName(), this.getClienteTeste());
+		this.getClienteServico().removeArquivo(arquivoFisicoTemp.getName());
 	
 		estatisticaMetaDados.salvaDadosLatencia(Constantes.TESTE_LE_ARQUIVO_HASH_METADADOS, arquivoLogicoTemp);
 		estatisticaStorage.salvaDadosLatencia(Constantes.TESTE_LE_ARQUIVO_HASH_STORAGE, arquivoLogicoTemp);

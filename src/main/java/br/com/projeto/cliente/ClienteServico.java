@@ -24,6 +24,7 @@ import br.com.projeto.utils.Seguranca;
  *
  */
 public class ClienteServico {
+	public Cliente cliente;
 	public MapDiretorio mapDiretorio;
 	private final int ARQUIVOS_NAO_COMPARADOS = 0;
 	private final int ARQUIVOS_IGUAIS = 1;
@@ -33,9 +34,11 @@ public class ClienteServico {
 	 * Cria o objeto de conexão com os servidores.
 	 * 
 	 * @param kVProxy
+	 * @param cliente
 	 */
-	public ClienteServico(ServiceProxy kVProxy) {
+	public ClienteServico(ServiceProxy kVProxy, Cliente cliente) {
 		mapDiretorio = new MapDiretorio(kVProxy);
+		this.cliente = cliente;
 	}
 	
 	/**Serviço de ir para outro diretório.
@@ -50,7 +53,7 @@ public class ClienteServico {
 	 * @param nomeDiretorio
 	 * @param cliente
 	 */
-	public void moveDiretorio(String nomeDiretorio, Cliente cliente) {
+	public void moveDiretorio(String nomeDiretorio) {
 		List<String> diretorioCliente = cliente.getDiretorioClienteAtual();
 		int tamanhoDiretorioAtual = 0;
 		
@@ -74,7 +77,7 @@ public class ClienteServico {
 	 * @param nomeNovoDiretorio
 	 * @param cliente
 	 */
-	public void criaDiretorio(String nomeNovoDiretorio, Cliente cliente) {
+	public void criaDiretorio(String nomeNovoDiretorio) {
 		String msgSaida = "";
 		
 		try {
@@ -98,7 +101,7 @@ public class ClienteServico {
 	 * @param nomeNovoDiretorio
 	 * @param cliente
 	 */
-	public void removeDiretorio(String nomeDiretorio, Cliente cliente) {
+	public void removeDiretorio(String nomeDiretorio) {
 		String msgSaida = "";
 		
 		try {
@@ -126,7 +129,7 @@ public class ClienteServico {
 	 * 
 	 * @param cliente
 	 */
-	public void listaDados(Cliente cliente) {
+	public void listaDados() {
 		ArrayList<List<String>> listaDados = new ArrayList<List<String>>();
 		List<String> listaArquivos = new ArrayList<String>();
 		List<String> listaDiretorios = new ArrayList<String>();
@@ -159,15 +162,15 @@ public class ClienteServico {
 	 * @param arquivo físico a ser enviado
 	 * @param cliente dados do cliente atual
 	 */
-	public void salvaArquivoThread(File arquivoFisico, Cliente cliente) {
+	public void escreveArquivoThread(File arquivoFisico) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivoLogico = new Arquivo();
 			
 		cliente.setNumeroStorages((2 * cliente.getfNumeroFalhas()) + 1);
 		if (mapDiretorio.buscaArquivo(arquivoFisico.getName(), cliente.getDiretorioClienteAtual()) == null) {
-			salvaArquivoServidorMetaDadosHash(arquivoLogico, cliente, arquivoFisico, listaStorages);
+			escreveArquivoServidorMetaDadosHash(arquivoLogico, arquivoFisico, listaStorages);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
-				salvaArquivoStorage(listaStorages, arquivoLogico, arquivoFisico, cliente);
+				escreveArquivoStorage(listaStorages, arquivoLogico, arquivoFisico);
 			} else {
 				System.out.println("Erro ao salvar o arquivo no servidor de meta dados!");
 			}
@@ -186,7 +189,7 @@ public class ClienteServico {
 	 * @param arquivo arquivo físico a ser salvo
 	 * @param listaStorages lista com os melhores storages
 	 */
-	public void salvaArquivoServidorMetaDadosThread(Arquivo novoArquivo, Cliente cliente, 
+	public void escreveArquivoServidorMetaDadosThread(Arquivo novoArquivo,
 			File arquivo, List<Storage> listaStorages) {
 		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
 		
@@ -215,15 +218,15 @@ public class ClienteServico {
 	 * @param arquivo físico a ser enviado
 	 * @param cliente dados do cliente atual
 	 */
-	public void salvaArquivoHash(File arquivoFisico, Cliente cliente) {
+	public void escreveArquivoHash(File arquivoFisico) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivoLogico = new Arquivo();
 			
 		cliente.setNumeroStorages(cliente.getfNumeroFalhas() + 1);
 		if (mapDiretorio.buscaArquivo(arquivoFisico.getName(), cliente.getDiretorioClienteAtual()) == null) {
-			salvaArquivoServidorMetaDadosHash(arquivoLogico, cliente, arquivoFisico, listaStorages);
+			escreveArquivoServidorMetaDadosHash(arquivoLogico, arquivoFisico, listaStorages);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
-				salvaArquivoStorage(listaStorages, arquivoLogico, arquivoFisico, cliente);
+				escreveArquivoStorage(listaStorages, arquivoLogico, arquivoFisico);
 			} else {
 				System.out.println("Erro ao salvar o arquivo no servidor de meta dados!");
 			}
@@ -243,7 +246,7 @@ public class ClienteServico {
 	 * @param arquivo arquivo físico a ser salvo
 	 * @param listaStorages lista com os melhores storages
 	 */
-	public void salvaArquivoServidorMetaDadosHash(Arquivo novoArquivo, Cliente cliente, 
+	public void escreveArquivoServidorMetaDadosHash(Arquivo novoArquivo,
 			File arquivo, List<Storage> listaStorages) {
 		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
 		
@@ -271,8 +274,8 @@ public class ClienteServico {
 	 * @param arquivo arquivo físico a ser salvo
 	 * @param listaStorages lista com os melhores storages
 	 */
-	public void salvaArquivoStorage(List<Storage> listaStorages, Arquivo novoArquivo, 
-			File arquivo, Cliente cliente) {
+	public void escreveArquivoStorage(List<Storage> listaStorages, Arquivo novoArquivo, 
+			File arquivo) {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getNumeroStorages()];
 		int count = 0;
@@ -306,15 +309,15 @@ public class ClienteServico {
 	 * @param nomeArquivo nome do arquivo a ser removido.
 	 * @param cliente dados do cliente.
 	 */
-	public void removeArquivo(String nomeArquivo, Cliente cliente) {
+	public void removeArquivo(String nomeArquivo) {
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		Arquivo arquivo = new Arquivo();
 		
 		arquivo = mapDiretorio.buscaArquivo(nomeArquivo, cliente.getDiretorioClienteAtual());
 		if (arquivo != null) {
-			removeArquivoServidorMetaDados(arquivo, cliente, listaStorages);
+			removeArquivoServidorMetaDados(arquivo, listaStorages);
 			if (CollectionUtils.isNotEmpty(listaStorages) && (listaStorages.size() == cliente.getNumeroStorages())) {
-				removeArquivoStorage(listaStorages, arquivo, cliente);
+				removeArquivoStorage(listaStorages, arquivo);
 			} else {
 				System.out.println("Erro ao remover o arquivo do servidor de meta dados!");
 			}
@@ -331,7 +334,7 @@ public class ClienteServico {
 	 * @param listaStorages lista de storages onde se encontra o arquivo.
 	 */
 	private void removeArquivoServidorMetaDados(Arquivo arquivo,
-			Cliente cliente, List<Storage> listaStorages) {
+			List<Storage> listaStorages) {
 		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
 		
 		listaStoragesTemp = mapDiretorio.removeArquivo(arquivo, cliente.getDiretorioClienteAtual());
@@ -348,7 +351,7 @@ public class ClienteServico {
 	 * @param cliente dados do cliente atual da aplicação.
 	 */
 	private void removeArquivoStorage(List<Storage> listaStorages,
-			Arquivo arquivo, Cliente cliente) {
+			Arquivo arquivo) {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getNumeroStorages()];
 		int count = 0;
@@ -378,13 +381,13 @@ public class ClienteServico {
 	 * @param nomeArquivo nome do arquivo a ser lido.
 	 * @param cliente dados do cliente.
 	 */
-	public void leArquivoThread(String nomeArquivo, Cliente cliente) {
+	public void leArquivoThread(String nomeArquivo) {
 		Arquivo arquivo = new Arquivo();
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		
 		arquivo.setNomeArquivo(nomeArquivo);
-		leArquivoMetaDados(arquivo, cliente, listaStorages);
-		leArquivoStorageThread(arquivo, cliente, listaStorages);
+		leArquivoMetaDados(arquivo, listaStorages);
+		leArquivoStorageThread(arquivo, listaStorages);
 	}
 	
 	/**Método de leitura utilizando hash.
@@ -394,13 +397,13 @@ public class ClienteServico {
 	 * @param nomeArquivo nome do arquivo a ser lido.
 	 * @param cliente dados do cliente.
 	 */
-	public void leArquivoHash(String nomeArquivo, Cliente cliente) {
+	public void leArquivoHash(String nomeArquivo) {
 		Arquivo arquivo = new Arquivo();
 		List<Storage> listaStorages = new ArrayList<Storage>();
 		
 		arquivo.setNomeArquivo(nomeArquivo);
-		leArquivoMetaDados(arquivo, cliente, listaStorages);
-		leArquivoStorageHash(arquivo, cliente, listaStorages);
+		leArquivoMetaDados(arquivo, listaStorages);
+		leArquivoStorageHash(arquivo, listaStorages);
 	}
 	
 	/**Método para lêr um arquivo do servidor de meta dados.
@@ -411,8 +414,7 @@ public class ClienteServico {
 	 * @param cliente dados do cliente da aplicação.
 	 * @param listaStorages lista para receber os storages que o arquivo está salvo.
 	 */
-	public void leArquivoMetaDados(Arquivo arquivo, Cliente cliente, 
-			List<Storage> listaStorages) {
+	public void leArquivoMetaDados(Arquivo arquivo, List<Storage> listaStorages) {
 		List<Storage> listaStoragesTemp = new ArrayList<Storage>();
 		Arquivo arquivoTemp = new Arquivo();
 		
@@ -439,8 +441,7 @@ public class ClienteServico {
 	 * @param cliente dados do cliente.
 	 * @param listaStorages lista com os storages que contêm o arquivo.
 	 */
-	public boolean leArquivoStorageHash(Arquivo arquivo, Cliente cliente, 
-			List<Storage> listaStorages) {
+	public boolean leArquivoStorageHash(Arquivo arquivo, List<Storage> listaStorages) {
 		ComunicacaoClienteStorage comunicacaoClienteStorage = new ComunicacaoClienteStorage();
 		ArrayList<String> listaLocalArquivosTemp = new ArrayList<String>();
 		
@@ -487,8 +488,7 @@ public class ClienteServico {
 	 * @param cliente dados do cliente da aplicação.
 	 * @param listaStorages lista dos storages onde o arquivo está salvo
 	 */
-	public boolean leArquivoStorageThread(Arquivo arquivo, Cliente cliente, 
-			List<Storage> listaStorages) {
+	public boolean leArquivoStorageThread(Arquivo arquivo, List<Storage> listaStorages) {
 		ComunicacaoClienteStorage comunicacaoClienteStorage[] = new ComunicacaoClienteStorage[cliente.getNumeroStorages()];
 		Thread thread[] = new Thread[cliente.getNumeroStorages()];
 		int count = 0;
@@ -518,7 +518,7 @@ public class ClienteServico {
 			}
 		
 			System.out.println("Verificando integridade do arquivo...");
-			if (verificaIntegridadeDados(arquivo, listaLocalArquivosTemp, cliente)) {
+			if (verificaIntegridadeDados(arquivo, listaLocalArquivosTemp)) {
 				System.out.println("Arquivo recebido sem modificações.");
 				System.out.println("Arquivo: " + arquivo.getNomeArquivo() + " salvo com sucesso!");
 				return true;
@@ -549,8 +549,7 @@ public class ClienteServico {
 	 * @param cliente dados do cliente.
 	 * @return boolean com status da verificação.
 	 */
-	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalArquivosTemp,
-			Cliente cliente) {
+	private boolean verificaIntegridadeDados(Arquivo arquivo, ArrayList<String> listaLocalArquivosTemp) {
 		int numeroFValido = cliente.getNumeroStorages() - cliente.getfNumeroFalhas();
 		int arquivosIguais = 1;
 		int comparacaoAux[][] = new int [listaLocalArquivosTemp.size()] [listaLocalArquivosTemp.size()];
@@ -620,8 +619,7 @@ public class ClienteServico {
 	 * Método para deletar os arquivos temporários
 	 * @param listaLocalArquivosTemp lista  de arquivos temporários
 	 */
-	private void deletaArquivosTemporarios(
-			ArrayList<String> listaLocalArquivosTemp) {
+	private void deletaArquivosTemporarios(ArrayList<String> listaLocalArquivosTemp) {
 		for (String localArquivoTmp : listaLocalArquivosTemp) {
 			File arqTmp = new File(localArquivoTmp);
 			if(arqTmp.exists()) {
@@ -629,6 +627,14 @@ public class ClienteServico {
 			}
 		}
 	
+	}
+
+	public Cliente getCliente() {
+		return cliente;
+	}
+
+	public void setCliente(Cliente cliente) {
+		this.cliente = cliente;
 	}
 	
 }

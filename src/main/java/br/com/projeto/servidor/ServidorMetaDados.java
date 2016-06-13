@@ -23,6 +23,7 @@ import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
 import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.diretorio.ArvoreDiretorio;
+import br.com.projeto.interfaces.InterfaceServidorMetaDados;
 import br.com.projeto.storage.Storage;
 import br.com.projeto.utils.Constantes;
 import br.com.projeto.utils.Estatistica;
@@ -32,7 +33,7 @@ import br.com.projeto.utils.Estatistica;
  * o objeto servidor serviço e o objeto da tabela de storage.
  *
  */
-public class ServidorMetaDados extends DefaultSingleRecoverable {
+public class ServidorMetaDados extends DefaultSingleRecoverable implements InterfaceServidorMetaDados {
 	private int 	idServidor;
 	private boolean mensurarTestes;
 	private long	throughputMeasurementStartTime;
@@ -43,7 +44,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 	ServidorServico servidorServico;
 	Map<Integer, Storage> tabelaStorage;
 	
-	/**Construtor da classe, recebe o id do servidor, passado como
+	/**Construtor da classe, recebe o id do servidor, passando como
 	 * argumento ao inicializar a classe.
 	 * Inicializa os outros objetos do servidor.
 	 * Inicializa a comunicação via BFT-Smart.
@@ -55,9 +56,9 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 	public ServidorMetaDados(int idServidor, boolean mensurarTestes, int numeroIntervalo) {		
 		this.idServidor = idServidor;
 		this.mensurarTestes = mensurarTestes;
-		arvoreDiretorio = new ArvoreDiretorio();
-		servidorServico = new ServidorServico();
-		tabelaStorage =  new HashMap<Integer,Storage>();
+		arvoreDiretorio = criaArvoreDiretorio();
+		servidorServico = criaServidorServico();
+		tabelaStorage =  criaTabelaStorage();
 		
 		//dados estatisticos
 		throughputMeasurementStartTime = System.currentTimeMillis();
@@ -67,7 +68,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 		
 		new ServiceReplica(idServidor, this, this);
 	}
-
+	
 	/**Método de inicialização do servidor.
 	 * Recebe como argumento o id do servidor e uma flag indicando se será mensurado os testes de throughput.
 	 * 
@@ -377,5 +378,25 @@ public class ServidorMetaDados extends DefaultSingleRecoverable {
 
 	public void setMensurarTestes(boolean mensurarTestes) {
 		this.mensurarTestes = mensurarTestes;
+	}
+	
+	@Override
+	public ServiceReplica estabeleceComunicacaoBFT(int idServidor) {
+		return new ServiceReplica(idServidor, this, this);
+	}
+	
+	@Override
+	public ArvoreDiretorio criaArvoreDiretorio() {
+		return new ArvoreDiretorio();
+	}
+
+	@Override
+	public Map<Integer, Storage> criaTabelaStorage() {
+		return new HashMap<Integer,Storage>();
+	}
+
+	@Override
+	public ServidorServico criaServidorServico() {
+		return new ServidorServico();
 	}
 }
