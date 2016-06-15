@@ -122,10 +122,10 @@ public class MapDiretorio {
 			
 			DataOutputStream dos = new DataOutputStream(out); 
 			dos.writeInt(Constantes.REMOVE_DIRETORIO); 
-			dos.writeUTF(nomeDiretorio);
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(diretorioCliente);
 			out1.close();
+			dos.writeUTF(nomeDiretorio);
 			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
 			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
@@ -226,10 +226,10 @@ public class MapDiretorio {
 			
 			DataOutputStream dos = new DataOutputStream(out); 
 			dos.writeInt(Constantes.CRIA_DIRETORIO); 
-			dos.writeUTF(novoDiretorio);
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(diretorioCliente);
 			out1.close();
+			dos.writeUTF(novoDiretorio);
 			
 			byte[] rep = this.getConexao().invokeOrdered(out.toByteArray());
 			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;
@@ -268,11 +268,12 @@ public class MapDiretorio {
 			DataOutputStream dos = new DataOutputStream(out); 
 			
 			dos.writeInt(Constantes.BUSCA_ARQUIVO);
-			dos.writeUTF((String) nomeArquivo);
 
 			ObjectOutputStream outObject = new ObjectOutputStream(out) ;
 			outObject.writeObject(diretorioCliente);
 			outObject.close();
+			
+			dos.writeUTF((String) nomeArquivo);
 			
 			byte[] rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
@@ -314,10 +315,11 @@ public class MapDiretorio {
 			
 			DataOutputStream dos = new DataOutputStream(out); 
 			dos.writeInt(Constantes.VERIFICA_DIRETORIO);
-			dos.writeUTF((String) nomeDiretorio);
 			ObjectOutputStream  out1 = new ObjectOutputStream(out) ;
 			out1.writeObject(diretorioCliente);
 			out1.close();
+			
+			dos.writeUTF((String) nomeDiretorio);
 			
 			rep = this.getConexao().invokeUnordered(out.toByteArray());
 			ByteArrayInputStream bis = new ByteArrayInputStream(rep) ;

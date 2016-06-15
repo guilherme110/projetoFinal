@@ -9,13 +9,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.collections4.CollectionUtils;
 
 import bftsmart.demo.bftmap.BFTMapServer;
 import bftsmart.tom.MessageContext;
@@ -40,9 +37,9 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
     private int 	iteracoes;
     private int 	intervalo;
     private double 	maxTp;
-	ArvoreDiretorio arvoreDiretorio;
+	//ArvoreDiretorio arvoreDiretorio;
 	ServidorServico servidorServico;
-	Map<Integer, Storage> tabelaStorage;
+	//Map<Integer, Storage> tabelaStorage;
 	
 	/**Construtor da classe, recebe o id do servidor, passando como
 	 * argumento ao inicializar a classe.
@@ -56,9 +53,9 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 	public ServidorMetaDados(int idServidor, boolean mensurarTestes, int numeroIntervalo) {		
 		this.idServidor = idServidor;
 		this.mensurarTestes = mensurarTestes;
-		arvoreDiretorio = criaArvoreDiretorio();
+		//arvoreDiretorio = criaArvoreDiretorio();
 		servidorServico = criaServidorServico();
-		tabelaStorage =  criaTabelaStorage();
+		//tabelaStorage =  criaTabelaStorage();
 		
 		//dados estatisticos
 		throughputMeasurementStartTime = System.currentTimeMillis();
@@ -92,6 +89,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 	 * 
 	 * @return resposta para o cliente.
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public byte[] appExecuteOrdered(byte[] dadosCliente, MessageContext msgCtx) {
 		byte[] resposta = null;
@@ -99,6 +97,8 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 		try {
 			ByteArrayInputStream dados = new ByteArrayInputStream(dadosCliente);
             int comando = new DataInputStream(dados).readInt();
+            List<String> diretorioCliente = new ArrayList<String>();
+			ObjectInputStream objIn = new ObjectInputStream(dados);
             
             //Calcula o throughput caso tenha sido selecionada a mensuração de dados.
             if (this.isMensurarTestes()) {
@@ -107,19 +107,50 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
         	
 			switch (comando) {
 			case Constantes.CRIA_DIRETORIO:
-				resposta = servidorServico.criaDiretorio(dados, arvoreDiretorio);
+			    try {
+			    	diretorioCliente = (List<String>) objIn.readObject();
+					String nomeNovoDiretorio = new DataInputStream(dados).readUTF();
+			    	resposta = servidorServico.criaDiretorio(diretorioCliente, nomeNovoDiretorio);
+			    } catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+			    }
 				break;
 			case Constantes.REMOVE_DIRETORIO:
-				resposta = servidorServico.removeDiretorio(dados, arvoreDiretorio);
+			    try {
+			    	diretorioCliente = (List<String>) objIn.readObject();
+			    	String nomeDiretorio = new DataInputStream(dados).readUTF();
+					resposta = servidorServico.removeDiretorio(diretorioCliente, nomeDiretorio);
+			    } catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+			    }
 				break;	
 			case Constantes.SALVA_ARQUIVO:
-				resposta = opcaoSalvaArquivo(dados);
+				try {
+			    	Arquivo novoArquivo = (Arquivo) objIn.readObject();
+			    	diretorioCliente = (List<String>) objIn.readObject();
+			    	Integer numeroStorages = (Integer) objIn.readObject();
+
+					resposta = servidorServico.salvaArquivo(novoArquivo, diretorioCliente, numeroStorages);
+			    } catch (ClassNotFoundException ex) {
+				    Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+				}
 				break;	
 			case Constantes.REMOVE_ARQUIVO:
-				resposta = opcaoRemoveArquivo(dados);
+				try {
+			       	Arquivo arquivo = (Arquivo) objIn.readObject();
+			    	diretorioCliente = (List<String>) objIn.readObject();
+					resposta = servidorServico.removeArquivo(arquivo, diretorioCliente);
+			    } catch (ClassNotFoundException ex) {
+				    Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+				}
 				break;
 			case Constantes.STORAGE_CADASTRO_TABELASTORAGE:
-				resposta = servidorServico.salvaStorage(dados, tabelaStorage);
+			    try {
+			    	Storage novoStorage = (Storage) objIn.readObject();
+					resposta = servidorServico.salvaStorage(novoStorage);
+			    } catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+			    }
 				break;
 			default:
 				break;
@@ -140,9 +171,12 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 	 * 
 	 * @return resposta para o cliente.
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public byte[] executeUnordered(byte[] dadosCliente, MessageContext msgCtx) {
 		byte[] resposta = null;
+		ArrayList<List<String>> listaDados = new ArrayList<List<String>>();
+		List<String> diretorioCliente = new ArrayList<String>();
 		
 		//Calcula o throughput caso tenha sido selecionada a mensuração de dados.
         if (this.isMensurarTestes()) {
@@ -152,19 +186,42 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 		try {
 			ByteArrayInputStream dados = new ByteArrayInputStream(dadosCliente);
             int comando = new DataInputStream(dados).readInt();
+			ObjectInputStream objIn = new ObjectInputStream(dados);
             
             switch (comando) {
 			case Constantes.VERIFICA_DIRETORIO:
-				resposta = servidorServico.verificaDiretorio(dados, arvoreDiretorio);
+			    try {
+			    	diretorioCliente = (List<String>) objIn.readObject();
+			    	String nomeDiretorio = new DataInputStream(dados).readUTF();
+					resposta = servidorServico.verificaDiretorio(diretorioCliente, nomeDiretorio);
+			    } catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+			    }
 				break;
 			case Constantes.BUSCA_ARQUIVO:
-				resposta = servidorServico.buscaArquivo(dados, arvoreDiretorio);
+			    try {
+			    	diretorioCliente = (List<String>) objIn.readObject();
+			    	String nomeArquivo = new DataInputStream(dados).readUTF();
+			    	resposta = servidorServico.buscaArquivo(diretorioCliente, nomeArquivo);
+			    } catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+			    }
 				break;
-			case Constantes.LISTA_DADOS:
-				resposta = servidorServico.listaDados(dados, arvoreDiretorio);
+			case Constantes.LISTA_DADOS:			
+			    try {
+			    	diretorioCliente = (List<String>) objIn.readObject();
+					resposta = servidorServico.listaDados(diretorioCliente, listaDados);
+			    } catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+			    }
 				break;
 			case Constantes.BUSCA_STORAGES_ARQUIVO:
-				resposta = servidorServico.buscaStorages(dados, tabelaStorage);
+				try {
+					Arquivo arquivo = (Arquivo) objIn.readObject();
+					resposta = servidorServico.buscaListaStorages(arquivo);
+				} catch (ClassNotFoundException ex) {
+			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
+				}
 			default:
 				break;
 			}
@@ -207,8 +264,8 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
             // serialize to byte array and return
             ByteArrayInputStream bis = new ByteArrayInputStream(state);
             ObjectInput in = new ObjectInputStream(bis);
-            arvoreDiretorio = (ArvoreDiretorio) in.readObject();
-            tabelaStorage = (Map<Integer, Storage>) in.readObject();
+            servidorServico.setArvoreDiretorio((ArvoreDiretorio) in.readObject());
+            servidorServico.setTabelaStorage((Map<Integer, Storage>) in.readObject());
             in.close();
             bis.close();
 
@@ -229,8 +286,8 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 		try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutput out = new ObjectOutputStream(bos);
-            out.writeObject(arvoreDiretorio);
-            out.writeObject(tabelaStorage);
+            out.writeObject(servidorServico.getArvoreDiretorio());
+            out.writeObject(servidorServico.getTabelaStorage());
             out.flush();
             bos.flush();
             out.close();
@@ -242,126 +299,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
         }   
 	}
 	
-	/**Método para salvar um novo arquivo no servidor de metadados.
-	 * Primeiro le os dados de entrada do cliente e monta o objeto novoArquivo, diretorioCliente e numeroStorages.
-	 * Depois busca a lista com os melhores storages a serem utilizados para salvar o arquivo.
-     * Caso a lista não seja vazia, chama o serviço para atualiza os dados da arvore de diretorio e
-     * chama o serviço para atualiza os dados da tabela de storage.
-     * Por ultimo serializa a lista de storages para ser enviado ao cliente.
-     * 
-	 * @param dados do cliente
-	 * @return byte lista de storages serializada.
-	 */
-	@SuppressWarnings("unchecked")
-	public byte[] opcaoSalvaArquivo(ByteArrayInputStream dados) {
-		List<Storage> listaStorages   = new ArrayList<Storage>();
-		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
-		List<String> diretorioCliente = new ArrayList<String>();
-		int numeroStorages			  = 0;
-		ObjectInputStream objIn;
-		ObjectOutputStream objOut;
-		Arquivo novoArquivo           = new Arquivo();
-		
-		//le os dados de entrada
-		try {
-	    	objIn = new ObjectInputStream(dados);
-	    	novoArquivo = (Arquivo) objIn.readObject();
-	    	diretorioCliente = (List<String>) objIn.readObject();
-	    	numeroStorages = (Integer) objIn.readObject();
-	    } catch (ClassNotFoundException ex) {
-			System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
-	    	ex.printStackTrace(); 
-	    } catch (IOException ex) {
-			System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
-			ex.printStackTrace(); 
-		}
-		
-		servidorServico.buscaListaMelhorStorage(listaStorages, numeroStorages, novoArquivo, tabelaStorage);
-		if ((CollectionUtils.isNotEmpty(listaStorages)) && (numeroStorages == listaStorages.size())) {
-			System.out.println("Encontrado lista com os melhores storages, tamanho da lista: " + listaStorages.size());
-			if (servidorServico.salvaArquivo(novoArquivo, diretorioCliente, arvoreDiretorio)) {
-				servidorServico.addArquivoTabelaStorage(novoArquivo, listaStorages, tabelaStorage);	
-				System.out.println("Nome do arquivo salvo: " + novoArquivo.getNomeArquivo());
-				System.out.println("Tabela de Storage atualizada!");
-			} else {
-				System.out.println("Nome de arquivo existente nesse diretório!");
-			}
-		} else if (listaStorages.size() != numeroStorages){
-			System.out.println("Número de storages disponível não atende ao cliente!");
-		} else {
-			System.out.println("Não há espaço nos storages ou o arquivo já está salvo em todos os Storages!");
-			listaStorages = null;
-		}
-
-		//monta os dados de saida
-		try {
-			objOut = new ObjectOutputStream(saida);
-			objOut.writeObject(listaStorages);
-			objOut.close();
-		} catch (IOException ex) {
-			System.out.println("Erro na escrita da saída dos dados"); 
-			Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
-			ex.printStackTrace();
-		}
-		return saida.toByteArray();
-	}
 	
-	/**Método para remover um arquivo do servidor de metadados.
-	 * Primeiro le os dados de entrada do cliente e monta o objeto arquivo e diretorioCliente.
-	 * Depois verifica se o arquivo existe nesse diretório, caso exista apaga ele da arvoreDiretorio.
-	 * Em seguida verifica os storages onde o arquivo está salvo, remove ele de cada storage e
-	 * atualiza a tabela de storage.
-     * Por ultimo serializa a lista de storages para ser enviada ao cliente.
-     * 
-	 * @param dados do cliente
-	 * @return byte lista de storages serializada.
-	 */
-	@SuppressWarnings("unchecked")
-	private byte[] opcaoRemoveArquivo(ByteArrayInputStream dados) {
-		List<Storage> listaStorages	  = new ArrayList<Storage>();
-		ByteArrayOutputStream saida   = new ByteArrayOutputStream();
-		List<String> diretorioCliente = new ArrayList<String>();
-		ObjectInputStream objIn;
-		ObjectOutputStream objOut;
-		Arquivo arquivo		          = new Arquivo();
-		
-		//le os dados de entrada
-		try {
-	    	objIn = new ObjectInputStream(dados);
-	    	arquivo = (Arquivo) objIn.readObject();
-	    	diretorioCliente = (List<String>) objIn.readObject();
-	    } catch (ClassNotFoundException ex) {
-			System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
-	    	ex.printStackTrace(); 
-	    } catch (IOException ex) {
-	    	System.out.println("Erro na leitura dos dados de entrada!");
-	    	Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
-			ex.printStackTrace(); 
-		}
-		
-		if (servidorServico.apagaArquivo(arquivo, diretorioCliente, arvoreDiretorio)) {
-			servidorServico.remArquivoTabelaStorage(arquivo, listaStorages, tabelaStorage);	
-			System.out.println("Nome do arquivo apagado: " + arquivo.getNomeArquivo());
-			System.out.println("Tabela de Storage atualizada!");
-		} else {
-			System.out.println("Nome de arquivo não existe nesse diretório!");
-		}
-	
-		//monta os dados de saida
-		try {
-			objOut = new ObjectOutputStream(saida);
-			objOut.writeObject(listaStorages);
-			objOut.close();
-		} catch (IOException ex) {
-			System.out.println("Erro na escrita da saída dos dados"); 
-			Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
-			ex.printStackTrace();
-		}
-		return saida.toByteArray();
-	}
 
 	public int getIdServidor() {
 		return idServidor;
@@ -383,16 +321,6 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 	@Override
 	public ServiceReplica estabeleceComunicacaoBFT(int idServidor) {
 		return new ServiceReplica(idServidor, this, this);
-	}
-	
-	@Override
-	public ArvoreDiretorio criaArvoreDiretorio() {
-		return new ArvoreDiretorio();
-	}
-
-	@Override
-	public Map<Integer, Storage> criaTabelaStorage() {
-		return new HashMap<Integer,Storage>();
 	}
 
 	@Override
