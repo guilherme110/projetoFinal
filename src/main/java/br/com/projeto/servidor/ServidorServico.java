@@ -89,8 +89,8 @@ public class ServidorServico {
 	 * @return lista de dados do diretório.
 	 * @throws IOException.
 	 */
-	public byte[] listaDados(List<String> diretorioAtual, ArrayList<List<String>> listaDados) throws IOException {
-	    listaDados = arvoreDiretorio.listaDados(diretorioAtual);
+	public byte[] listaDados(List<String> diretorioAtual) throws IOException {
+		ArrayList<List<String>> listaDados = arvoreDiretorio.listaDados(diretorioAtual);
 	    ByteArrayOutputStream saida = new ByteArrayOutputStream();
 	    ObjectOutputStream objOut = new ObjectOutputStream(saida);
 	    objOut.writeObject(listaDados);
@@ -136,7 +136,7 @@ public class ServidorServico {
 	 * @param arvoreDiretorio
 	 * @return status da solicitação.
 	 */
-	public boolean salvaArquivoArvore(Arquivo novoArquivo,
+	private boolean salvaArquivoArvore(Arquivo novoArquivo,
 			List<String> diretorioCliente) {
 		
 		if (arvoreDiretorio.addArquivo(diretorioCliente, novoArquivo))
@@ -239,7 +239,7 @@ public class ServidorServico {
 	 * @param arvoreDiretorio
 	 * @return status da solicitação
 	 */
-	public boolean apagaArquivo(Arquivo arquivo, List<String> diretorioCliente) {
+	private boolean apagaArquivo(Arquivo arquivo, List<String> diretorioCliente) {
 		if (arvoreDiretorio.remArquivo(diretorioCliente, arquivo))
 			return true;
 		return false;
@@ -254,7 +254,7 @@ public class ServidorServico {
 	 * @param listaStorages dados a serem retornados ao cliente.
 	 * @param tabelaStorage dados de todos os storages.
 	 */
-	public void adicionaArquivoTabelaStorage(Arquivo arquivo, List<Storage> listaStorages) {	
+	private void adicionaArquivoTabelaStorage(Arquivo arquivo, List<Storage> listaStorages) {	
 		
 		for (Storage storage : listaStorages) {
 			storage.addListaArquivo(arquivo);
@@ -273,7 +273,7 @@ public class ServidorServico {
 	 * @param listaStorages retorno para o cliente.
 	 * @param tabelaStorage tabela com dados de todos os storages.
 	 */
-	public void removeArquivoTabelaStorage(Arquivo arquivo, List<Storage> listaStorages) {
+	private void removeArquivoTabelaStorage(Arquivo arquivo, List<Storage> listaStorages) {
 		Storage storage = new Storage();
 		
 		for (int idStorage: arquivo.getListaIdStorage()) {
@@ -297,7 +297,7 @@ public class ServidorServico {
 	 * @param tabelaStorage
 	 * @return lista de storages atualizado.
 	 */
-	public void buscaListaMelhorStorage(List<Storage> listaStorages,
+	private void buscaListaMelhorStorage(List<Storage> listaStorages,
 			int numeroStorages, Arquivo arquivo) {
 		Storage melhorStorage = new Storage();
 		int contador = 0;

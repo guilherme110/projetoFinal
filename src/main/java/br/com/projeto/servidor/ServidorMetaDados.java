@@ -175,7 +175,6 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 	@Override
 	public byte[] executeUnordered(byte[] dadosCliente, MessageContext msgCtx) {
 		byte[] resposta = null;
-		ArrayList<List<String>> listaDados = new ArrayList<List<String>>();
 		List<String> diretorioCliente = new ArrayList<String>();
 		
 		//Calcula o throughput caso tenha sido selecionada a mensuração de dados.
@@ -210,7 +209,7 @@ public class ServidorMetaDados extends DefaultSingleRecoverable implements Inter
 			case Constantes.LISTA_DADOS:			
 			    try {
 			    	diretorioCliente = (List<String>) objIn.readObject();
-					resposta = servidorServico.listaDados(diretorioCliente, listaDados);
+					resposta = servidorServico.listaDados(diretorioCliente);
 			    } catch (ClassNotFoundException ex) {
 			       Logger.getLogger(ServidorMetaDados.class.getName()).log(Level.SEVERE, null, ex);
 			    }

@@ -33,13 +33,13 @@ public class Storage implements Serializable {
 	}
 	
 	public Storage(int idStorage, int portaConexao, long espacoLivre, 
-			String localArmazenamento, List<Arquivo> listaArquivos) {
+			String localArmazenamento) {
 		super();
 		this.portaConexao = portaConexao;
 		this.espacoLivre = espacoLivre;
-		this.listaArquivos = listaArquivos;
 		this.idStorage = idStorage;
 		this.localArmazenamento = localArmazenamento;
+		this.listaArquivos = new ArrayList<Arquivo>();
 	}
 	public String getNomeStorage() {
 		return nomeStorage;

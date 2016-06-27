@@ -1,11 +1,8 @@
 package br.com.projeto.storage;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import bftsmart.tom.ServiceProxy;
-import br.com.projeto.diretorio.Arquivo;
 import br.com.projeto.interfaces.InterfaceStorage;
 
 /**Classe da aplicação que rodará no Storage.
@@ -50,8 +47,8 @@ public class ServidorStorage implements InterfaceStorage{
 		}
 		
 		storage = criaStorage(Integer.parseInt(args[0]), Integer.parseInt(args[1]), 
-				Long.parseLong(args[2]), args[3] ,new ArrayList<Arquivo>());
-		storageServico = criaStorageServico(storage, KVProxy);
+				Long.parseLong(args[2]), args[3]);
+		storageServico = criaStorageServico(KVProxy, storage);
 		
 		//fica em loop enquanto aguarda novos clientes.
 		if (storageServico.iniciaServidor()) {
@@ -72,14 +69,12 @@ public class ServidorStorage implements InterfaceStorage{
 
 	@Override
 	public Storage criaStorage(int idStorage, int portaConexao,
-			long espacoLivre, String localArmazenamento,
-			List<Arquivo> listaArquivos) {
-		return new Storage(idStorage, portaConexao, espacoLivre, localArmazenamento, listaArquivos);
+			long espacoLivre, String localArmazenamento) {
+		return new Storage(idStorage, portaConexao, espacoLivre, localArmazenamento);
 	}
 
 	@Override
-	public StorageServico criaStorageServico(Storage storage,
-			ServiceProxy KVProxy) {
+	public StorageServico criaStorageServico(ServiceProxy KVProxy, Storage storage) {
 		return new StorageServico(storage, KVProxy);
 	}
 }

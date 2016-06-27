@@ -52,7 +52,7 @@ public class StorageServico {
 		}
 		
 		try {
-			if (!enviaDadosStorageMetaDados(storage, this.getComunicacao()))
+			if (!enviaDadosStorageMetaDados(storage))
 				throw new Exception();
 			System.out.println("Dados enviados para o servidor de meta dados com sucesso!");
 		} catch (Exception e) {
@@ -74,7 +74,7 @@ public class StorageServico {
 	 * @param storage
 	 * @return Boolean com status da solicitação
 	 */
-	private boolean enviaDadosStorageMetaDados(Storage storage, ServiceProxy KVProxy) {
+	private boolean enviaDadosStorageMetaDados(Storage storage) {
 		boolean res = false;
 		
 		try {
@@ -87,7 +87,7 @@ public class StorageServico {
 			out1.writeObject(storage);
 			out1.close();
 			
-			byte[] rep = KVProxy.invokeOrdered(out.toByteArray());
+			byte[] rep = comunicacao.invokeOrdered(out.toByteArray());
 			ByteArrayInputStream in = new ByteArrayInputStream(rep);
 	        ObjectInputStream objIn = new ObjectInputStream(in);
 		    
